@@ -93,6 +93,7 @@ export interface UserStats {
   monthlyVolume: number;
   followerCount: number;
   followingCount: number;
+  bio?: string;
 }
 
 export interface CompletedWorkout {
@@ -102,12 +103,24 @@ export interface CompletedWorkout {
   duration: number;
   totalVolume: number;
   xpEarned: number;
-  points: number; // Formula-based points
-  reliability: ReliabilityLevel;
-  isValidated: boolean;
   exercises: ActiveExercise[];
+  points: number;
+  user_id: string;
+  isValidated?: boolean;
+  reliability?: ReliabilityLevel;
 }
 
+export interface WorkoutComment {
+  id: string;
+  workout_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  user?: {
+    full_name: string;
+    avatar_url: string;
+  };
+}
 export interface RoutineExercise {
   exerciseId: string;
   name: string;
@@ -273,6 +286,7 @@ export interface WorkoutState {
   socialFeed: any[];
   notifications: Notification[];
   unreadCount: number;
+  comments: Record<string, WorkoutComment[]>;
   clearLastBadgeEarned: () => void;
   
   updateProfile: (updates: Partial<UserStats>) => Promise<void>;
@@ -313,13 +327,16 @@ export interface WorkoutState {
   fetchInitialData: () => Promise<void>;
   subscribeToRealtime: () => (() => void);
   
-  // Social Actions (Phase 11)
+  // Social Actions (Phase 11 & 14)
   followUser: (targetUserId: string) => Promise<void>;
   unfollowUser: (targetUserId: string) => Promise<void>;
   fetchSocialFeed: () => Promise<void>;
   fetchNotifications: () => Promise<void>;
   markNotificationsAsRead: () => Promise<void>;
   supportWorkout: (workoutId: string) => Promise<void>;
+  addComment: (workoutId: string, content: string) => Promise<void>;
+  deleteComment: (commentId: string) => Promise<void>;
+  fetchComments: (workoutId: string) => Promise<void>;
 }
 
 export const useWorkoutStore = create<WorkoutState>()(
@@ -328,6 +345,24 @@ export const useWorkoutStore = create<WorkoutState>()(
       activeWorkout: null,
       notifications: [],
       unreadCount: 0,
+      comments: {},
+      clearLastBadgeEarned: () => set({ lastBadgeEarned: null }),
+
+      followUser: async (targetUserId) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { error } = await supabase.from('follows').insert({ follower_id: user.id, following_id: targetUserId });
+        if (error) console.error('Error following user:', error);
+        get().fetchInitialData();
+      },
+
+      unfollowUser: async (targetUserId) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { error } = await supabase.from('follows').delete().eq('follower_id', user.id).eq('following_id', targetUserId);
+        if (error) console.error('Error unfollowing user:', error);
+        get().fetchInitialData();
+      },
       updateProfile: async (updates) => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -341,11 +376,47 @@ export const useWorkoutStore = create<WorkoutState>()(
             show_badges: updates.showBadges,
             instagram_url: updates.instagramUrl,
             youtube_url: updates.youtubeUrl,
-            personal_records: updates.personalRecords
+            personal_records: updates.personalRecords,
+            bio: updates.bio
           }).eq('id', user.id);
           if (error) console.error('Error updating profile:', error);
           get().fetchInitialData();
         }
+      },
+      addComment: async (workoutId, content) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { error } = await supabase.from('workout_comments').insert({
+          workout_id: workoutId,
+          user_id: user.id,
+          content
+        });
+
+        if (error) console.error('Error adding comment:', error);
+      },
+      deleteComment: async (commentId) => {
+        const { error } = await supabase.from('workout_comments').delete().eq('id', commentId);
+        if (error) console.error('Error deleting comment:', error);
+      },
+      fetchComments: async (workoutId) => {
+        const { data, error } = await supabase
+          .from('workout_comments')
+          .select('*, user:profiles(full_name, avatar_url)')
+          .eq('workout_id', workoutId)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching comments:', error);
+          return;
+        }
+
+        set(state => ({
+          comments: {
+            ...state.comments,
+            [workoutId]: data || []
+          }
+        }));
       },
       history: [],
       lastPerformance: {},
@@ -414,332 +485,6 @@ export const useWorkoutStore = create<WorkoutState>()(
       follows: [],
       socialFeed: [],
       
-      followUser: async (targetUserId) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        try {
-          const { error } = await supabase.from('follows').insert({
-            follower_id: user.id,
-            following_id: targetUserId
-          });
-          if (!error) {
-            set(state => ({ 
-              follows: [...state.follows, targetUserId],
-              allProfiles: state.allProfiles.map(p => 
-                p.id === targetUserId 
-                  ? { ...p, follower_count: (p.follower_count || 0) + 1 } 
-                  : p
-              ),
-              userStats: {
-                ...state.userStats,
-                followingCount: state.userStats.followingCount + 1
-              }
-            }));
-            get().fetchSocialFeed();
-          }
-        } catch (error) {
-          console.error('Error following user:', error);
-        }
-      },
-
-      unfollowUser: async (targetUserId) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        try {
-          const { error } = await supabase.from('follows').delete().eq('follower_id', user.id).eq('following_id', targetUserId);
-          if (!error) {
-            set(state => ({ 
-              follows: state.follows.filter(id => id !== targetUserId),
-              allProfiles: state.allProfiles.map(p => 
-                p.id === targetUserId 
-                  ? { ...p, follower_count: Math.max(0, (p.follower_count || 0) - 1) } 
-                  : p
-              ),
-              userStats: {
-                ...state.userStats,
-                followingCount: Math.max(0, state.userStats.followingCount - 1)
-              }
-            }));
-            get().fetchSocialFeed();
-          }
-        } catch (error) {
-          console.error('Error unfollowing user:', error);
-        }
-      },
-
-      fetchSocialFeed: async () => {
-        if (!isSupabaseConfigured) return;
-        const { follows } = get();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const feedUserIds = [user.id, ...follows];
-        
-        try {
-          const { data, error } = await supabase
-            .from('workouts')
-            .select(`
-              *,
-              profile:profiles!inner(id, full_name, avatar_url, follower_count, following_count)
-            `)
-            .in('user_id', feedUserIds)
-            .order('date', { ascending: false })
-            .limit(50);
-
-          if (!error && data) {
-            set({ socialFeed: data.map(w => ({
-              ...w,
-              date: new Date(w.date).getTime(),
-              totalVolume: Number(w.total_volume),
-              xpEarned: Number(w.xp_earned),
-              profile: w.profile
-            })) });
-          }
-        } catch (err) {
-          console.error('Error fetching social feed:', err);
-        }
-      },
-
-      fetchNotifications: async () => {
-        if (!isSupabaseConfigured) return;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        try {
-          const { data, error } = await supabase
-            .from('notifications')
-            .select(`
-              *,
-              actor:profiles!actor_id(full_name, avatar_url)
-            `)
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(20);
-
-          if (!error && data) {
-            const notifications = data.map(n => ({
-              id: n.id,
-              user_id: n.user_id,
-              actor_id: n.actor_id,
-              type: n.type as any,
-              target_id: n.target_id,
-              is_read: n.is_read,
-              created_at: n.created_at,
-              actor: n.actor
-            }));
-            set({ 
-              notifications,
-              unreadCount: notifications.filter(n => !n.is_read).length
-            });
-          }
-        } catch (err) {
-          console.error('Error fetching notifications:', err);
-        }
-      },
-
-      markNotificationsAsRead: async () => {
-        if (!isSupabaseConfigured) return;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        try {
-          const { error } = await supabase
-            .from('notifications')
-            .update({ is_read: true })
-            .eq('user_id', user.id)
-            .eq('is_read', false);
-
-          if (!error) {
-            set(state => ({
-              notifications: state.notifications.map(n => ({ ...n, is_read: true })),
-              unreadCount: 0
-            }));
-          }
-        } catch (err) {
-          console.error('Error marking notifications as read:', err);
-        }
-      },
-
-      supportWorkout: async (workoutId: string) => {
-        if (!isSupabaseConfigured) return;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        try {
-          const { error } = await supabase
-            .from('workout_supports')
-            .insert({ workout_id: workoutId, user_id: user.id });
-
-          if (!error) {
-            // Optimistic update could go here, but trigger handles notification
-            // We just need to ensure the action is successful
-          } else if (error.code === '23505') {
-            // Already supported, ignore or toggling can be added later
-          }
-        } catch (err) {
-          console.error('Error supporting workout:', err);
-        }
-      },
-      
-      clearLastBadgeEarned: () => set({ lastBadgeEarned: null }),
-
-      fetchInitialData: async () => {
-        if (!isSupabaseConfigured) return;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        try {
-          // 1. Fetch Events (Public)
-          const { data: events, error: evError } = await supabase.from('events').select('*');
-          if (!evError && events) {
-            set({ 
-              events: events.map(ev => ({
-                id: ev.id,
-                title: ev.title,
-                subtitle: ev.subtitle,
-                description: ev.description,
-                type: ev.type,
-                startDate: Number(ev.startDate),
-                endDate: Number(ev.endDate),
-                imageUrl: ev.imageUrl,
-                participants: ev.participants_ids || []
-              }))
-            });
-          }
-
-          // 2. Fetch User Profile
-          const { data: profile, error: pError } = await supabase.from('profiles').select('*').single();
-          if (!pError && profile) {
-            set({ 
-              userStats: {
-                points: profile.points || 0,
-                level: profile.level || 1,
-                totalWeight: Number(profile.total_weight) || 0,
-                streak: profile.streak || 1,
-                reliability: profile.reliability as ReliabilityLevel,
-                lastWorkoutDate: profile.last_workout_date ? new Date(profile.last_workout_date).getTime() : undefined,
-                weight: Number(profile.weight) || 0,
-                height: Number(profile.height) || 0,
-                gender: profile.gender || '',
-                birthDate: profile.birth_date || '',
-                strengthScore: Number(profile.strength_score) || 0,
-                fullName: profile.full_name || '',
-                avatarUrl: profile.avatar_url || '',
-                showSensitiveData: profile.show_sensitive_data ?? true,
-                showBadges: profile.show_badges ?? true,
-                instagramUrl: profile.instagram_url || '',
-                youtubeUrl: profile.youtube_url || '',
-                personalRecords: profile.personal_records || {},
-                weeklyPoints: profile.weekly_points || 0,
-                monthlyPoints: profile.monthly_points || 0,
-                weeklyVolume: Number(profile.weekly_volume) || 0,
-                monthlyVolume: Number(profile.monthly_volume) || 0,
-                followerCount: profile.follower_count || 0,
-                followingCount: profile.following_count || 0
-              },
-              currentUserRole: profile.role as UserRole
-            });
-
-            // 3. Fetch Initial Follows List
-            const { data: follows, error: fError } = await supabase
-              .from('follows')
-              .select('following_id')
-              .eq('follower_id', user.id);
-            if (!fError && follows) {
-              set({ follows: follows.map(f => f.following_id) });
-              get().fetchSocialFeed();
-            }
-          }
-
-          // 3. Fetch All Profiles (for Ranking)
-          const { data: allProfs, error: apError } = await supabase.from('profiles').select('*').order('points', { ascending: false });
-          if (!apError && allProfs) {
-            set({ allProfiles: allProfs });
-          }
-
-          // 4. Fetch Workouts (History)
-          const { data: workouts, error: wError } = await supabase
-            .from('workouts')
-            .select('*')
-            .order('date', { ascending: false });
-          if (!wError && workouts) {
-            set({ history: workouts.map(w => ({
-              ...w,
-              points: w.points,
-              xpEarned: w.xp_earned,
-              totalVolume: Number(w.total_volume),
-              isValidated: w.is_validated,
-              date: new Date(w.date).getTime()
-            })) });
-          }
-
-          // 4. Fetch Routines
-          const { data: routines, error: rError } = await supabase.from('routines').select('*');
-          if (!rError && routines) {
-            set({ routines: routines.map(r => ({
-              id: r.id,
-              title: r.title,
-              description: r.description,
-              muscleGroups: r.muscle_groups,
-              days: r.days,
-              isRecurring: r.is_recurring,
-              authorRole: r.author_role as UserRole
-            })) });
-          }
-
-          // 5. Fetch Custom Exercises
-          const { data: customEx, error: ceError } = await supabase.from('custom_exercises').select('*');
-          if (!ceError && customEx) {
-            set({ customExercises: customEx.map(ce => ({
-              id: ce.id,
-              name: ce.name,
-              muscle: ce.muscle,
-              equipment: ce.equipment,
-              isCustom: true
-            })) });
-          }
-
-          // 6. Fetch Badges
-          const { data: userBadges, error: ubError } = await supabase.from('user_badges').select('*');
-          if (!ubError && userBadges) {
-            set(state => ({
-              badges: state.badges.map(b => ({
-                ...b,
-                earnedBy: userBadges.some(ub => ub.badge_id === b.id) ? ['current-user'] : []
-              }))
-            }));
-          }
-
-          // 7. Fetch Notifications
-          get().fetchNotifications();
-
-        } catch (err) {
-          console.error('Error fetching initial data:', err);
-        }
-      },
-
-      subscribeToRealtime: () => {
-        if (!isSupabaseConfigured) return () => {};
-        
-        const mainChannel = supabase.channel('app-sync')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => get().fetchInitialData())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => get().fetchInitialData())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'workouts' }, () => {
-            get().fetchInitialData();
-            get().fetchSocialFeed();
-          })
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'routines' }, () => get().fetchInitialData())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'custom_exercises' }, () => get().fetchInitialData())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'user_badges' }, () => get().fetchInitialData())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'event_participants' }, () => get().fetchInitialData())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => get().fetchNotifications())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_supports' }, () => get().fetchSocialFeed())
-          .subscribe();
-
-        return () => {
-          supabase.removeChannel(mainChannel);
-        };
-      },
-
       setRole: (role) => set({ currentUserRole: role }),
       addEvent: async (event) => {
         if (isSupabaseConfigured) {
@@ -946,6 +691,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           reliability: userStats.reliability,
           isValidated: userStats.reliability !== 'bronze',
           exercises: activeWorkout.exercises,
+          user_id: user.id,
         };
 
         // Badge Check Logic
@@ -1269,6 +1015,127 @@ export const useWorkoutStore = create<WorkoutState>()(
         if (error) console.error('Error resetting test data:', error);
         get().fetchInitialData();
       },
+
+      fetchInitialData: async () => {
+        if (!isSupabaseConfigured) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // Stats
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        if (profile) {
+          set({
+            userStats: {
+              points: profile.points || 0,
+              level: profile.level || 1,
+              totalWeight: profile.total_weight || 0,
+              streak: profile.streak || 0,
+              lastWorkoutDate: profile.last_workout_date ? new Date(profile.last_workout_date).getTime() : undefined,
+              reliability: profile.reliability || 'bronze',
+              fullName: profile.full_name || '',
+              avatarUrl: profile.avatar_url || '',
+              weight: profile.weight || 0,
+              height: profile.height || 0,
+              gender: profile.gender || '',
+              birthDate: profile.birth_date || '',
+              strengthScore: profile.strength_score || 0,
+              showSensitiveData: profile.show_sensitive_data ?? true,
+              showBadges: profile.show_badges ?? true,
+              instagramUrl: profile.instagram_url || '',
+              youtubeUrl: profile.youtube_url || '',
+              personalRecords: profile.personal_records || {},
+              weeklyPoints: profile.weekly_points || 0,
+              monthlyPoints: profile.monthly_points || 0,
+              weeklyVolume: profile.weekly_volume || 0,
+              monthlyVolume: profile.monthly_volume || 0,
+              followerCount: profile.follower_count || 0,
+              followingCount: profile.following_count || 0,
+            },
+            totalXP: (profile.points || 0) * 10,
+          });
+        }
+
+        // history
+        const { data: workouts, error: wError } = await supabase.from('workouts').select('*').eq('user_id', user.id).order('date', { ascending: false });
+          if (!wError && workouts) {
+            set({ history: workouts.map(w => ({
+              id: w.id,
+              name: w.name,
+              date: new Date(w.date).getTime(),
+              duration: w.duration,
+              exercises: w.exercises,
+              points: w.points,
+              user_id: w.user_id,
+              isValidated: w.is_validated,
+              totalVolume: Number(w.total_volume) || 0,
+              xpEarned: Number(w.xp_earned) || 0,
+              reliability: w.reliability as ReliabilityLevel
+            })) });
+          }
+
+        // routines
+        const { data: routines } = await supabase.from('routines').select('*').eq('user_id', user.id);
+        if (routines) {
+          set({ routines: routines.map(r => ({
+            id: r.id,
+            title: r.title,
+            description: r.description,
+            muscleGroups: r.muscle_groups,
+            days: r.days,
+            isRecurring: r.is_recurring,
+            authorRole: r.author_role
+          })) });
+        }
+
+        const { data: follows } = await supabase.from('follows').select('following_id').eq('follower_id', user.id);
+        if (follows) set({ follows: follows.map(f => f.following_id) });
+
+        get().fetchSocialFeed();
+        get().fetchNotifications();
+      },
+
+      subscribeToRealtime: () => {
+        if (!isSupabaseConfigured) return () => {};
+        const workoutsSub = supabase.channel('public:workouts').on('postgres_changes', { event: '*', schema: 'public', table: 'workouts' }, () => get().fetchInitialData()).subscribe();
+        const profilesSub = supabase.channel('public:profiles').on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => get().fetchInitialData()).subscribe();
+        const notifySub = supabase.channel('public:notifications').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => get().fetchNotifications()).subscribe();
+        const commentsSub = supabase.channel('public:workout_comments').on('postgres_changes', { event: '*', schema: 'public', table: 'workout_comments' }, (payload) => {
+          if (payload.new && (payload.new as any).workout_id) get().fetchComments((payload.new as any).workout_id);
+        }).subscribe();
+
+        return () => {
+          workoutsSub.unsubscribe();
+          profilesSub.unsubscribe();
+          notifySub.unsubscribe();
+          commentsSub.unsubscribe();
+        };
+      },
+
+      fetchSocialFeed: async () => {
+        const { data, error } = await supabase.from('workouts').select('*, profiles(full_name, avatar_url, reliability)').order('date', { ascending: false }).limit(20);
+        if (!error && data) {
+          set({ socialFeed: data });
+          data.forEach(w => get().fetchComments(w.id));
+        }
+      },
+
+      fetchNotifications: async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data, error } = await supabase.from('notifications').select('*, profiles:actor_id(full_name, avatar_url)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
+        if (!error && data) {
+          set({ notifications: data.map(n => ({ ...n, actor: n.profiles })), unreadCount: data.filter(n => !n.is_read).length });
+        }
+      },
+
+      markNotificationsAsRead: async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        await supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id);
+        set({ unreadCount: 0 });
+      },
+
+      supportWorkout: async (workoutId) => { console.log('Supporting:', workoutId); },
 
       uploadAvatar: async (file: File) => {
         if (!isSupabaseConfigured) return null;

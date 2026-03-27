@@ -10,28 +10,46 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Dumbbell, 
   History as HistoryIcon, 
-  User, 
   Plus, 
-  Settings,
-  Search,
-  ChevronRight,
-  CheckCircle2,
+  Play, 
+  CheckCircle2, 
+  Clock, 
+  ChevronRight, 
+  Settings, 
+  User, 
+  TrendingUp, 
+  Calendar, 
+  Award, 
+  Search, 
+  Filter, 
+  ChevronDown, 
+  Check, 
+  MoreHorizontal, 
+  Trash2, 
+  Copy, 
+  Edit3, 
+  Share2, 
+  Info, 
+  Target, 
+  Trophy, 
+  Users, 
+  Camera, 
+  Eye, 
+  EyeOff, 
+  Shield, 
+  Instagram, 
+  Youtube, 
+  Bell, 
+  Heart, 
+  MessageCircle, 
+  LogOut,
   X,
-  Clock,
   Timer,
-  Trash2,
-  MoreVertical,
-  Bell,
   Megaphone,
-  Calendar,
-  Award,
   Medal,
   Flame,
   Star,
   Download,
-  ChevronDown,
-  Check,
-  MessageCircle,
   Edit2,
   ChevronLeft,
   Zap,
@@ -39,20 +57,19 @@ import {
   Weight,
   CheckSquare,
   Server as Database,
-  LogOut,
   PlusCircle,
-  Trophy,
-  Camera,
   Scale,
-  Instagram,
-  Youtube,
   Lock,
-  Eye,
-  EyeOff,
-  TrendingUp,
-  Users,
   UserCheck
 } from 'lucide-react';
+import { Sidebar } from './components/layout/Sidebar';
+import { MobileHeader } from './components/layout/MobileHeader';
+import { NotificationPanel } from './components/layout/NotificationPanel';
+import { WorkoutTab } from './components/tabs/WorkoutTab';
+import { HistoryTab } from './components/tabs/HistoryTab';
+import { RankingTab } from './components/tabs/RankingTab';
+import { ProfileTab } from './components/tabs/ProfileTab';
+import { AdminDashboard } from './components/AdminDashboard';
 import { useWorkoutStore, SetType, CompletedWorkout, RoutineTemplate, UserRole, AppEvent } from './store/useWorkoutStore';
 import { BASE_EXERCISES, LibraryExercise } from './data/exercises';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
@@ -173,7 +190,6 @@ function AppContent({ session }: { session: Session | null }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [workoutTime, setWorkoutTime] = useState(0);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
-  const [adminTab, setAdminTab] = useState<'events' | 'exercises' | 'settings' | 'supabase'>('events');
 
   const { 
     activeWorkout, history, restTimer, totalXP, routines,
@@ -183,11 +199,25 @@ function AppContent({ session }: { session: Session | null }) {
     updateSet, addSet, removeSet,
     startRestTimer, tickRestTimer, stopRestTimer,
     deleteWorkout, clearLastBadgeEarned,
-    currentUserRole, setRole, events, addEvent, updateEvent, deleteEvent, participateInEvent,
-    badges, addBadge, claimBadge, tips, addTip, customExercises, addCustomExercise, deleteCustomExercise,
-    generateTestData, resetTestData,
-    fetchInitialData, subscribeToRealtime,
-    allProfiles, updateProfile} = useWorkoutStore();
+    currentUserRole, setRole, events, participateInEvent,
+    badges, tips, customExercises,
+    allProfiles, updateProfile,
+    userStats, 
+    validateWorkout, 
+    addPoints,
+    setReliability,
+    follows,
+    socialFeed,
+    followUser,
+    unfollowUser,
+    notifications,
+    unreadCount,
+    fetchNotifications,
+    markNotificationsAsRead,
+    supportWorkout,
+    addEvent, updateEvent, deleteEvent, addBadge, addTip, addCustomExercise, deleteCustomExercise, generateTestData, resetTestData, fetchInitialData,
+    subscribeToRealtime
+  } = useWorkoutStore();
 
   useEffect(() => {
     if (session) {
@@ -255,22 +285,6 @@ function AppContent({ session }: { session: Session | null }) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-
-  const { 
-    userStats, 
-    validateWorkout, 
-    addPoints,
-    setReliability,
-    follows,
-    socialFeed,
-    followUser,
-    unfollowUser,
-    notifications,
-    unreadCount,
-    fetchNotifications,
-    markNotificationsAsRead,
-    supportWorkout
-  } = useWorkoutStore();
 
   useEffect(() => {
     if (events.length <= 1) return;
@@ -526,139 +540,29 @@ function AppContent({ session }: { session: Session | null }) {
           </button>
         ))}
       </div>
-      {/* Mobile/Tablet Header */}
-      <header className="lg:hidden p-4 border-b border-border flex justify-between items-center bg-background/80 backdrop-blur-md sticky top-0 z-40">
-        <h1 className="text-2xl font-display font-bold tracking-tight">
-          {activeTab === 'workout' ? 'Treino' : activeTab === 'history' ? 'Histórico' : activeTab === 'ranking' ? 'Ranking' : 'Perfil'}
-        </h1>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => {
-              setShowNotifications(true);
-              markNotificationsAsRead();
-            }}
-            className="p-2 rounded-full hover:bg-muted relative transition-colors"
-          >
-            <Bell className="w-6 h-6" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-background animate-bounce">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-          <button 
-            onClick={() => { setActiveTab('profile'); setShowEditProfile(true); }}
-            className="p-2 rounded-full hover:bg-muted transition-colors"
-          >
-            <Settings className="w-6 h-6" />
-          </button>
-        </div>
-      </header>
+      <MobileHeader 
+        activeTab={activeTab}
+        unreadCount={unreadCount}
+        setShowNotifications={setShowNotifications}
+        markNotificationsAsRead={markNotificationsAsRead}
+        setActiveTab={setActiveTab}
+        setShowEditProfile={setShowEditProfile}
+      />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card/30 backdrop-blur-xl p-6 sticky top-0 h-screen">
-          <div className="mb-10">
-            <h1 className="text-2xl font-display font-bold text-primary tracking-tighter flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Dumbbell className="w-5 h-5 text-background" />
-              </div>
-              A10 academia
-            </h1>
-          </div>
-          
-          <nav className="flex-1 space-y-2">
-            {[
-              { id: 'workout', label: 'Treino', icon: Dumbbell },
-              { id: 'history', label: 'Histórico', icon: HistoryIcon },
-              { id: 'ranking', label: 'Comunidade', icon: Users },
-              { id: 'profile', label: 'Perfil', icon: User },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all",
-                  activeTab === item.id 
-                    ? "bg-primary text-background shadow-lg shadow-primary/20" 
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.label}
-              </button>
-            ))}
-            
-            <button
-              onClick={() => {
-                setShowNotifications(true);
-                markNotificationsAsRead();
-              }}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5" />
-                <span>Notificações</span>
-              </div>
-              {unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-500/10 transition-all mt-auto border border-transparent hover:border-red-500/20"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Sair da Conta</span>
-            </button>
-          </nav>
-
-          <div className="pt-6 border-t border-border">
-            <div className="bg-muted/50 p-4 rounded-xl border border-border flex items-center gap-3 relative group">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold overflow-hidden relative">
-                {allProfiles.find(p => p.id === session?.user.id)?.avatar_url ? (
-                  <img src={allProfiles.find(p => p.id === session?.user.id)?.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  "JP"
-                )}
-                <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
-                  <Camera className="w-4 h-4 text-white" />
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          setTempPhoto(ev.target?.result as string);
-                          setOriginalFile(file);
-                          setShowPhotoModal(true);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                  />
-                </label>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate">
-                  {userStats.fullName || session?.user.user_metadata.full_name || session?.user.email?.split('@')[0] || 'Usuário Elite'}
-                  <span className="text-primary ml-1">( {currentUserRole} )</span>
-                </p>
-                <p className="text-[10px] text-muted-foreground truncate">Nível {rank}</p>
-              </div>
-              <Settings 
-                onClick={() => { setActiveTab('profile'); setShowEditProfile(true); }}
-                className="w-4 h-4 text-muted-foreground cursor-pointer hover:text-primary transition-colors" 
-              />
-            </div>
-          </div>
-        </aside>
+        <Sidebar 
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          unreadCount={unreadCount}
+          setShowNotifications={setShowNotifications}
+          markNotificationsAsRead={markNotificationsAsRead}
+          userStats={userStats}
+          session={session}
+          allProfiles={allProfiles}
+          setTempPhoto={setTempPhoto}
+          setOriginalFile={setOriginalFile}
+          setShowPhotoModal={setShowPhotoModal}
+        />
 
       {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24 lg:pb-0">
@@ -688,1174 +592,83 @@ function AppContent({ session }: { session: Session | null }) {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto w-full">
-        <AnimatePresence mode="wait">
-          {activeTab === 'workout' && (
-            <motion.div
-              key="workout"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="p-4 space-y-6"
-            >
-              {!activeWorkout ? (
-                <div className="space-y-6">
-                  {/* User Header */}
-                  <div className="flex items-center justify-between bg-card p-4 rounded-2xl border border-border shadow-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-primary/20 bg-muted">
-                        <img 
-                          src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-                          alt="User" 
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-display font-bold">Olá, João Silva <span className="text-primary text-xs uppercase ml-1 animate-pulse">( dev )</span></h2>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {formatDay(currentTime)}, {formatHour(currentTime)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Promo/Events Section */}
-                  <div className="space-y-4">
-                    {/* Desktop/Tablet Grid */}
-                    <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {events.map((event) => (
-                        <div key={event.id} className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-primary to-primary/60 p-6 text-background shadow-lg group min-h-[180px] flex flex-col justify-end">
-                          {event.imageUrl && (
-                            <div className="absolute inset-0 z-0">
-                              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                            </div>
-                          )}
-                          <div className="relative z-10 space-y-2 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-90">
-                              <Megaphone className="w-3 h-3 text-white" />
-                              <span className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-lg text-white border border-white/10">
-                                {event.type === 'special' ? 'Evento Especial' : event.type === 'promotion' ? 'Promoção' : event.type === 'holiday' ? 'Feriado' : 'Evento Customizado'}
-                              </span>
-                            </div>
-                            <h3 className="text-xl font-display font-black leading-tight">{event.title}</h3>
-                            {event.subtitle && <p className="text-xs font-bold opacity-90 -mt-1">{event.subtitle}</p>}
-                            <p className="text-[10px] opacity-90 line-clamp-2 font-medium">{event.description}</p>
-                            <button onClick={() => participateInEvent(event.id)} className="mt-2 bg-white text-primary px-4 py-2 rounded-xl text-xs font-black shadow-lg hover:scale-105 transition-transform">
-                              {event.participants.includes('current-user') ? 'Inscrito' : 'Participar Agora'}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Mobile Auto-Carousel */}
-                    <div className="sm:hidden relative h-[220px]">
-                      <AnimatePresence mode="wait">
-                        {events.length > 0 && (
-                          <motion.div
-                            key={events[currentEventIndex].id}
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
-                            className="absolute inset-0 overflow-hidden rounded-[28px] bg-gradient-to-br from-primary to-primary/60 p-6 text-background shadow-lg flex flex-col justify-end"
-                          >
-                            {events[currentEventIndex].imageUrl && (
-                              <div className="absolute inset-0 z-0">
-                                <img src={events[currentEventIndex].imageUrl} alt={events[currentEventIndex].title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                              </div>
-                            )}
-                            <div className="relative z-10 space-y-2 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-90">
-                                <Megaphone className="w-3 h-3 text-white" />
-                                <span className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-lg text-white border border-white/10">
-                                  {events[currentEventIndex].type === 'special' ? 'Evento Especial' : events[currentEventIndex].type === 'promotion' ? 'Promoção' : events[currentEventIndex].type === 'holiday' ? 'Feriado' : 'Evento Customizado'}
-                                </span>
-                              </div>
-                              <h3 className="text-2xl font-display font-black leading-tight">{events[currentEventIndex].title}</h3>
-                              {events[currentEventIndex].subtitle && <p className="text-xs font-bold opacity-90 -mt-1">{events[currentEventIndex].subtitle}</p>}
-                              <p className="text-xs opacity-90 line-clamp-2 font-medium">{events[currentEventIndex].description}</p>
-                              <button onClick={() => participateInEvent(events[currentEventIndex].id)} className="mt-4 bg-white text-primary w-full py-3 rounded-xl text-sm font-black shadow-lg active:scale-95 transition-all">
-                                {events[currentEventIndex].participants.includes('current-user') ? 'Você está inscrito ✨' : 'Participar do Evento'}
-                              </button>
-                            </div>
-                            
-                            {/* Dots */}
-                            <div className="absolute bottom-4 right-6 flex gap-1 z-20">
-                              {events.map((_, i) => (
-                                <div key={i} className={cn("w-1.5 h-1.5 rounded-full transition-all", i === currentEventIndex ? "bg-white w-4" : "bg-white/40")} />
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-
-                  {/* Admin/Instructor Quick Actions */}
-                  {currentUserRole === 'admin' && (
-                    <div className="space-y-3">
-                      <button 
-                        onClick={() => setShowAdminDashboard(true)}
-                        style={{ background: 'linear-gradient(45deg, #FFD700, #FFA500)' }}
-                        className="w-full p-4 rounded-xl text-amber-950 flex items-center justify-center gap-2 font-black shadow-xl shadow-amber-500/20 group hover:scale-[1.02] active:scale-95 transition-all duration-300"
-                      >
-                        <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-700" />
-                        <span className="text-xs uppercase tracking-[0.2em]">Painel de Controle Admin</span>
-                      </button>
-                      <div className="grid grid-cols-2 gap-3">
-                        <button 
-                          onClick={() => setShowCreateEvent(true)}
-                          className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex flex-col items-center gap-2"
-                        >
-                          <Plus className="w-5 h-5" />
-                          <span className="text-[10px] font-bold uppercase">Novo Evento</span>
-                        </button>
-                        <button 
-                          onClick={() => setShowCreateBadge(true)}
-                          className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex flex-col items-center gap-2"
-                        >
-                          <Trophy className="w-5 h-5" />
-                          <span className="text-[10px] font-bold uppercase">Nova Badge</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentUserRole === 'instructor' && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <button 
-                        onClick={() => setShowCreateTip(true)}
-                        className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex flex-col items-center gap-2"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        <span className="text-[10px] font-bold uppercase">Nova Dica</span>
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setEditingRoutine(null);
-                          setShowRoutineEditor(true);
-                        }}
-                        className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex flex-col items-center gap-2"
-                      >
-                        <Plus className="w-5 h-5" />
-                        <span className="text-[10px] font-bold uppercase">Projetar Treino</span>
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Calendar Card */}
-                  <div className="bg-card p-5 rounded-2xl border border-border space-y-4 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-display font-bold flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-primary" />
-                        Calendário de Treinos
-                      </h3>
-                      <button className="text-[10px] font-bold text-primary uppercase tracking-wider">Ver tudo</button>
-                    </div>
-                    <div className="grid grid-cols-7 gap-1">
-                      {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, i) => (
-                        <div key={i} className="text-center">
-                          <p className="text-[10px] text-muted-foreground font-bold mb-1">{day}</p>
-                          <div className={cn(
-                            "h-8 w-full rounded-lg flex items-center justify-center text-xs font-mono",
-                            i === currentTime.getDay() ? "bg-primary text-background font-bold" : "bg-muted/50"
-                          )}>
-                            {23 + i}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="pt-2 border-t border-border/50 flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                      <p className="text-[10px] text-muted-foreground font-medium">Próximo treino agendado: Amanhã às 08:00</p>
-                    </div>
-                  </div>
-
-                  {/* Tips & Orientations Feed */}
-                  {tips.length > 0 && (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between px-1">
-                        <h3 className="font-display font-bold flex items-center gap-2">
-                          <MessageCircle className="w-4 h-4 text-primary" />
-                          Dicas de Instrutores
-                        </h3>
-                        <div className="flex -space-x-2">
-                          {[1, 2, 3].map(i => (
-                            <div key={i} className="w-5 h-5 rounded-full border border-background bg-muted overflow-hidden">
-                              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="pro" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex overflow-x-auto gap-3 pb-2 -mx-1 px-1 scrollbar-hide">
-                        {tips.map((tip) => (
-                          <div 
-                            key={tip.id} 
-                            className="bg-card p-4 rounded-xl border border-border min-w-[240px] max-w-[240px] space-y-3 relative overflow-hidden group hover:border-primary/40 transition-colors"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
-                                {tip.instructorName[0]}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-bold truncate">{tip.instructorName}</p>
-                                <p className="text-[8px] text-muted-foreground uppercase">{tip.category === 'tip' ? 'Dica Rápida' : 'Orientação'}</p>
-                              </div>
-                            </div>
-                            <p className="text-xs text-foreground/90 leading-relaxed line-clamp-3 italic">
-                              "{tip.content}"
-                            </p>
-                            <div className="absolute -right-2 -bottom-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                              <Award className="w-12 h-12" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="bg-card p-6 rounded-2xl border border-border space-y-4">
-                    <h2 className="text-xl font-display font-semibold">Início Rápido</h2>
-                    <p className="text-muted-foreground text-sm">Inicie um treino vazio e adicione exercícios conforme avança.</p>
-                    <button 
-                      onClick={() => startWorkout()}
-                      className="w-full bg-primary text-background font-bold py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                    >
-                      <Plus className="w-5 h-5" />
-                      Iniciar Treino Vazio
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between px-1">
-                      <h2 className="text-lg font-display font-semibold">Minhas Rotinas</h2>
-                      <button 
-                        onClick={() => {
-                          setEditingRoutine(null);
-                          setShowRoutineEditor(true);
-                        }}
-                        className="text-xs font-bold text-primary flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-lg active:scale-95 transition-all"
-                      >
-                        <Plus className="w-3 h-3" />
-                         Nova Rotina
-                      </button>
-                    </div>
-
-                      <div className="flex gap-4 mb-2">
-                        <button 
-                          onClick={() => setRoutineSection('mine')}
-                          className={cn(
-                            "text-[10px] font-bold uppercase tracking-[0.2em] transition-colors",
-                            routineSection === 'mine' ? "text-primary" : "text-muted-foreground"
-                          )}
-                        >
-                          Minhas Rotinas
-                        </button>
-                        <button 
-                          onClick={() => setRoutineSection('suggested')}
-                          className={cn(
-                            "text-[10px] font-bold uppercase tracking-[0.2em] transition-colors",
-                            routineSection === 'suggested' ? "text-primary" : "text-muted-foreground"
-                          )}
-                        >
-                           Sugeridas (A10)
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {routineSection === 'mine' ? (
-                          routines.map((template) => (
-                            <div 
-                              key={template.id}
-                              className="bg-card p-4 rounded-xl border border-border flex justify-between items-center group hover:border-primary/50 transition-colors shadow-sm"
-                            >
-                              <div onClick={() => startWorkout(template)} className="flex-1 cursor-pointer space-y-2">
-                                <div>
-                                  <h3 className="font-semibold text-sm">{template.title}</h3>
-                                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{template.isRecurring ? 'Semanal' : 'Ocasional'}</p>
-                                </div>
-                                <div className="flex gap-1">
-                                  {[
-                                    { idx: 1, label: 'S' },
-                                    { idx: 2, label: 'T' },
-                                    { idx: 3, label: 'Q' },
-                                    { idx: 4, label: 'Q' },
-                                    { idx: 5, label: 'S' },
-                                    { idx: 6, label: 'S' },
-                                    { idx: 0, label: 'D' },
-                                  ].map(day => {
-                                    const hasExs = (template.days[day.idx] || []).length > 0;
-                                    return (
-                                      <div 
-                                        key={day.idx}
-                                        className={cn(
-                                          "w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-bold border transition-colors",
-                                          hasExs 
-                                            ? "bg-primary/20 border-primary/40 text-primary" 
-                                            : "bg-muted/50 border-border text-muted-foreground opacity-30"
-                                        )}
-                                      >
-                                        {day.label}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setEditingRoutine(template);
-                                    setShowRoutineEditor(true);
-                                  }}
-                                  className="p-2 hover:bg-muted rounded-lg text-muted-foreground transition-colors"
-                                >
-                                  <Settings className="w-4 h-4" />
-                                </button>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setRoutineToDelete(template.id);
-                                  }}
-                                  className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-destructive transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          useWorkoutStore.getState().predefinedRoutines.map((routine) => (
-                            <div key={routine.id} className="bg-card border-2 border-dashed border-border p-4 rounded-xl space-y-3 hover:border-primary transition-colors flex flex-col justify-between group">
-                              <div>
-                                <div className="flex justify-between items-start">
-                                  <h3 className="font-bold text-sm">{routine.title}</h3>
-                                  <span className={cn(
-                                    "px-1.5 py-0.5 rounded text-[7px] font-black uppercase",
-                                    routine.id.startsWith('init') ? "bg-green-500/20 text-green-500" :
-                                    routine.id.startsWith('senior') ? "bg-blue-500/20 text-blue-500" :
-                                    "bg-orange-500/20 text-orange-500"
-                                  )}>
-                                    {routine.id.startsWith('init') ? "Iniciante" : routine.id.startsWith('senior') ? "Melhor Idade" : "Performance"}
-                                  </span>
-                                </div>
-                                <p className="text-[10px] text-muted-foreground line-clamp-2 mt-1">{routine.description}</p>
-                              </div>
-                              <button 
-                                onClick={() => {
-                                  importRoutine(routine);
-                                  setRoutineSection('mine');
-                                }}
-                                className="w-full bg-primary/10 text-primary font-black py-2 rounded-lg text-[10px] tracking-widest uppercase hover:bg-primary hover:text-background transition-all"
-                              >
-                                <Download className="w-3 h-3 inline mr-1" /> Importar
-                              </button>
-                            </div>
-                          ))
-                        )}
-                        {routineSection === 'mine' && (
-                          <button 
-                            onClick={() => {
-                              setEditingRoutine({
-                                id: '',
-                                title: '',
-                                description: '',
-                                muscleGroups: [],
-                                days: {},
-                                isRecurring: false
-                              });
-                              setShowRoutineEditor(true);
-                            }}
-                            className="border-2 border-dashed border-border rounded-xl p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-all group min-h-[100px]"
-                          >
-                            <Plus className="w-5 h-5" />
-                            <span className="font-bold text-[10px] uppercase tracking-wider">Nova Rotina</span>
-                          </button>
-                        )}
-                      </div>
-
-                    <div className="pt-2">
-                       <button 
-                        onClick={() => setShowMarketplace(true)}
-                        className="w-full py-4 rounded-xl border border-primary/20 bg-primary/5 text-primary text-sm font-bold flex items-center justify-center gap-2 hover:bg-primary/10 transition-colors"
-                      >
-                        <Download className="w-4 h-4" />
-                        Importar do Instrutor
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h2 className="text-xl font-display font-bold">Treino Ativo</h2>
-                      <p className="text-primary text-sm font-mono">{formatTime(workoutTime)}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => setShowCancelConfirm(true)}
-                        className="text-muted-foreground px-4 py-2 rounded-lg font-bold text-sm hover:text-destructive transition-colors"
-                      >
-                        Cancelar
-                      </button>
-                      <button 
-                        onClick={() => {
-                          const now = new Date();
-                          const hours = now.getHours();
-                          let timeOfDay = 'da Manhã';
-                          if (hours >= 12 && hours < 17) timeOfDay = 'da Tarde';
-                          if (hours >= 17 || hours < 4) timeOfDay = 'da Noite';
-                          setWorkoutName(`Treino ${timeOfDay}`);
-                          setShowFinishModal(true);
-                        }}
-                        className="bg-primary text-background px-6 py-2 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity"
-                      >
-                        Finalizar
-                      </button>
-                    </div>
-                  </div>
-
-                  {activeWorkout.exercises.map((exercise) => (
-                    <div key={exercise.exerciseId} className="bg-card rounded-2xl border border-border overflow-hidden">
-                      <div className="p-4 border-b border-border flex justify-between items-center">
-                        <h3 className="font-display font-bold text-primary">{exercise.name}</h3>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => removeExercise(exercise.exerciseId)}
-                            className="text-muted-foreground hover:text-destructive transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-4 space-y-4">
-                        {/* Exercise Notes */}
-                        <div className="px-2">
-                          <textarea 
-                            placeholder="Adicione notas para este exercício..."
-                            value={exercise.notes}
-                            onChange={(e) => updateExercise(exercise.exerciseId, { notes: e.target.value })}
-                            className="w-full bg-muted/50 border-none rounded-lg p-2 text-xs text-muted-foreground focus:ring-1 focus:ring-primary outline-none resize-none h-12"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-[36px_1fr_1fr_36px_24px] gap-2 text-[10px] uppercase tracking-widest text-muted-foreground font-bold px-1">
-                          <span className="text-center">Série</span>
-                          <span className="text-center">Peso</span>
-                          <span className="text-center">Reps</span>
-                          <span className="text-center">Feito</span>
-                          <span></span>
-                        </div>
-                        {exercise.sets.map((set, idx) => (
-                          <div key={set.id} className="grid grid-cols-[36px_1fr_1fr_36px_24px] gap-2 items-center group px-1">
-                            <button 
-                              onClick={() => {
-                                const nextType = SET_TYPES[(SET_TYPES.findIndex(t => t.value === set.type) + 1) % SET_TYPES.length].value;
-                                updateSet(exercise.exerciseId, set.id, { type: nextType });
-                              }}
-                              className={cn(
-                                "w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold transition-all mx-auto",
-                                set.completed ? "bg-primary text-background" : "bg-muted text-muted-foreground border border-border/50"
-                              )}
-                            >
-                              {idx + 1}
-                            </button>
-                            <input 
-                              type="number" 
-                              value={set.weight || ''} 
-                              onChange={(e) => updateSet(exercise.exerciseId, set.id, { weight: Number(e.target.value) })}
-                              placeholder="0"
-                              className="bg-muted border-none rounded-lg p-2 text-center font-mono focus:ring-1 focus:ring-primary outline-none min-w-0"
-                            />
-                            <input 
-                              type="number" 
-                              value={set.reps || ''} 
-                              onChange={(e) => updateSet(exercise.exerciseId, set.id, { reps: Number(e.target.value) })}
-                              placeholder="0"
-                              className="bg-muted border-none rounded-lg p-2 text-center font-mono focus:ring-1 focus:ring-primary outline-none min-w-0"
-                            />
-                            <button 
-                              onClick={() => updateSet(exercise.exerciseId, set.id, { completed: !set.completed })}
-                              className={cn(
-                                "w-8 h-8 rounded-lg flex items-center justify-center transition-colors mx-auto",
-                                set.completed ? "bg-primary text-background" : "bg-muted text-muted-foreground"
-                              )}
-                            >
-                              <CheckCircle2 className="w-5 h-5" />
-                            </button>
-                            <button 
-                              onClick={() => removeSet(exercise.exerciseId, set.id)}
-                              className="w-6 h-6 flex items-center justify-center text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity mx-auto"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                        <button 
-                          onClick={() => addSet(exercise.exerciseId)}
-                          className="w-full py-2 rounded-lg bg-muted text-sm font-semibold hover:bg-muted/80 transition-colors"
-                        >
-                          + Adicionar Série
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                  <button 
-                    onClick={() => setShowExercisePicker(true)}
-                    className="w-full border-2 border-dashed border-border rounded-2xl py-8 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-primary transition-all"
-                  >
-                    <Plus className="w-8 h-8" />
-                    <span className="font-bold uppercase tracking-widest text-xs">Adicionar Exercício</span>
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === 'history' && (
-            <motion.div
-              key="history"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="p-4 space-y-4"
-            >
-              {history.length === 0 ? (
-                <div className="text-center py-20 space-y-4">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                    <HistoryIcon className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground">Nenhum treino ainda. Comece a treinar!</p>
-                </div>
-              ) : (
-                history.map((workout) => (
-                  <button 
-                    key={workout.id} 
-                    onClick={() => setSelectedHistoryWorkout(workout)}
-                    className="w-full text-left bg-card p-4 rounded-xl border border-border hover:border-primary/50 transition-colors"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-bold">{workout.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {format(workout.date, "d 'de' MMMM, yyyy")} • {Math.floor(workout.duration / 60)}m
-                        </p>
-                      </div>
-                      <span className="text-primary font-mono text-xs font-bold">{workout.totalVolume} kg</span>
-                    </div>
-                  </button>
-                ))
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === 'profile' && (
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6 pb-24"
-            >
-              <div className="bg-card p-8 rounded-[32px] border border-border text-center space-y-4 relative overflow-hidden shadow-xl">
-                <div className="absolute top-0 left-0 w-24 h-24 bg-primary/5 rounded-full -translate-x-12 -translate-y-12 blur-2xl" />
-                <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full translate-x-16 translate-y-16 blur-3xl" />
-                
-                <div className="relative inline-block group">
-                  <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-4xl border-2 border-primary/20 shadow-inner group-hover:scale-110 transition-transform duration-500 overflow-hidden relative">
-                    {userStats.avatarUrl ? (
-                      <img src={userStats.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      "👨‍🚀"
-                    )}
-                    <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
-                      <Camera className="w-6 h-6 text-white" />
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              setTempPhoto(ev.target?.result as string);
-                              setOriginalFile(file);
-                              setShowPhotoModal(true);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 bg-primary text-background w-10 h-10 rounded-full flex items-center justify-center font-black border-4 border-card shadow-lg">
-                    {userStats.level}
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-display font-black uppercase tracking-tight">
-                    {userStats.fullName || session?.user.user_metadata.full_name || session?.user.email?.split('@')[0] || 'Usuário Elite'}
-                  </h2>
-                  <div className="flex items-center justify-center gap-2">
-                    <span className={cn(
-                      "text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full border",
-                      userStats.reliability === 'diamond' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
-                      userStats.reliability === 'gold' ? "bg-primary/10 text-primary border-primary/20" :
-                      "bg-muted text-muted-foreground border-border"
-                    )}>
-                      {userStats.reliability === 'diamond' ? '💎 Diamante' : userStats.reliability === 'gold' ? '🏆 Ouro' : userStats.reliability === 'silver' ? '🥈 Prata' : '🥉 Bronze'}
-                    </span>
-                    <span className="text-[8px] bg-muted text-muted-foreground font-black uppercase px-2 py-1 rounded-full uppercase">
-                      {userStats.level === 6 ? 'Lenda' : userStats.level === 5 ? 'Elite' : userStats.level === 4 ? 'Avançado' : userStats.level === 3 ? 'Intermediário' : userStats.level === 2 ? 'Aprendiz' : 'Iniciante'}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 justify-center pt-2">
-                    {userStats.instagramUrl && (
-                      <a href={userStats.instagramUrl} target="_blank" rel="noreferrer" className="p-2 bg-muted/50 rounded-lg hover:bg-primary/20 transition-colors">
-                        <Instagram className="w-4 h-4" />
-                      </a>
-                    )}
-                    {userStats.youtubeUrl && (
-                      <a href={userStats.youtubeUrl} target="_blank" rel="noreferrer" className="p-2 bg-muted/50 rounded-lg hover:bg-primary/20 transition-colors">
-                        <Youtube className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-4 pt-4">
-                  <div className="flex justify-between items-center">
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Zap className="w-3 h-3 text-purple-500" /> Tendência de Volume (7d)
-                    </div>
-                  </div>
-                  <div className="flex items-end justify-between h-12 gap-1 px-1">
-                    {getActivityData().map((day, i) => (
-                      <div key={i} className="flex-1 group relative">
-                        <motion.div 
-                          initial={{ height: 0 }}
-                          animate={{ height: `${Math.max(day.height, 10)}%` }}
-                          className={cn(
-                            "w-full rounded-t-sm transition-all duration-300",
-                            day.volume > 0 ? "bg-primary shadow-[0_0_10px_rgba(255,215,0,0.3)]" : "bg-muted/30"
-                          )}
-                        />
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-[6px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 font-bold border border-border">
-                          {day.volume} kg
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-4">
-                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    <span>XP Total</span>
-                    <span>{(totalXP % 1000)} / 1000 XP</span>
-                  </div>
-                  <div className="w-full h-3 bg-muted rounded-full overflow-hidden shadow-inner p-0.5">
-                    <motion.div 
-                      className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(255,215,0,0.5)]" 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(totalXP % 1000) / 10}%` }}
-                      transition={{ duration: 1, ease: 'easeOut' }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 pt-4">
-                  <div className="bg-muted/50 p-3 rounded-2xl">
-                    <p className="text-[8px] font-bold text-muted-foreground uppercase mb-1">Pontos</p>
-                    <p className="font-display font-black text-xs text-primary">{(userStats.points || 0).toLocaleString()}</p>
-                  </div>
-                  <div className="bg-muted/50 p-3 rounded-xl border border-border">
-                    <p className="text-[8px] font-bold text-muted-foreground uppercase mb-1">Treinos</p>
-                    <p className="font-display font-black text-xs">{history.length}</p>
-                  </div>
-                  <div className="bg-muted/50 p-3 rounded-xl border border-border">
-                    <p className="text-[8px] font-bold text-muted-foreground uppercase mb-1">Streak</p>
-                    <p className="font-display font-black text-xs text-orange-500">{streak} 🔥</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="bg-muted/30 p-2 rounded-xl border border-border/50 flex items-center justify-center gap-2">
-                    <Users className="w-3 h-3 text-primary" />
-                    <span className="text-[10px] font-black">{userStats.followerCount}</span>
-                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Seguidores</span>
-                  </div>
-                  <div className="bg-muted/30 p-2 rounded-xl border border-border/50 flex items-center justify-center gap-2">
-                    <UserCheck className="w-3 h-3 text-primary" />
-                    <span className="text-[10px] font-black">{userStats.followingCount}</span>
-                    <span className="text-[8px] font-bold text-muted-foreground uppercase">Seguindo</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-6">
-                  <button 
-                    onClick={() => setShowEditProfile(true)}
-                    className="flex-1 bg-primary text-background py-4 rounded-xl flex items-center justify-center gap-3 transition-all active:scale-95 text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Editar Bio & Métricas
-                  </button>
-                  <button 
-                    onClick={() => supabase.auth.signOut()}
-                    className="px-4 bg-muted/50 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-xl border border-border transition-all active:scale-95"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </div>
-                {/* Personal Records (PRs) - PHASE 10 */}
-                <div className="pt-6 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recordes Pessoais (1RM)</h3>
-                    <TrendingUp className="w-3 h-3 text-primary" />
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { label: 'Supino', id: 'bench', aliases: ['1', 'pt-1', 'Supino Reto', 'Bench Press'] },
-                      { label: 'Agacho', id: 'squat', aliases: ['2', 'pg-6', 'Agachamento', 'Squat'] },
-                      { label: 'Terra', id: 'deadlift', aliases: ['3', 'Levantamento Terra', 'Deadlift'] }
-                    ].map(lift => {
-                      const pr = Object.entries(userStats.personalRecords || {}).find(([exId]) => {
-                        const ex = BASE_EXERCISES.find(e => e.id === exId);
-                        return ex && lift.aliases.some(a => ex.name.toLowerCase().includes(a.toLowerCase()) || ex.id === a);
-                      })?.[1] || 0;
-
-                      return (
-                        <div key={lift.id} className="bg-card/40 border border-border p-3 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-sm">
-                          <span className="text-[8px] font-black uppercase text-muted-foreground">{lift.label}</span>
-                          <span className="text-sm font-display font-black text-primary">{Math.floor(pr)} <span className="text-[8px] text-muted-foreground">kg</span></span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Conquistas */}
-                <div className="pt-6 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Conquistas</h3>
-                    <span className="text-[10px] font-bold text-primary">{badges.filter(b => b.earnedBy.includes('current-user')).length} / {badges.length}</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {badges.map(badge => {
-                      const isEarned = badge.earnedBy.includes('current-user');
-                      return (
-                        <div 
-                          key={badge.id}
-                          title={`${badge.name}: ${badge.description}`}
-                          className={cn(
-                            "aspect-square rounded-xl flex flex-col items-center justify-center gap-1 border transition-all duration-300 cursor-help",
-                            isEarned ? "bg-primary/10 border-primary/20 shadow-lg" : "bg-muted/30 border-transparent opacity-40 grayscale"
-                          )}
-                        >
-                          <span className="text-xl">{badge.icon}</span>
-                          <span className="text-[6px] font-black uppercase text-center leading-tight line-clamp-1 px-1">
-                            {badge.name}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'ranking' && (
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-6 pb-24"
-            >
-              {/* Community Mode Selector */}
-              <div className="flex p-1 bg-card border border-border rounded-2xl gap-1">
-                <button 
-                  onClick={() => setCommunityMode('feed')}
-                  className={cn(
-                    "flex-1 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all",
-                    communityMode === 'feed' ? "bg-primary text-background shadow-lg" : "text-muted-foreground hover:bg-muted/50"
-                  )}
-                >
-                  Feed Social
-                </button>
-                <button 
-                  onClick={() => setCommunityMode('ranking')}
-                  className={cn(
-                    "flex-1 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all",
-                    communityMode === 'ranking' ? "bg-primary text-background shadow-lg" : "text-muted-foreground hover:bg-muted/50"
-                  )}
-                >
-                  Ranking Elite
-                </button>
-              </div>
-
-              {communityMode === 'feed' ? (
-                /* SOCIAL FEED */
-                <div className="space-y-4">
-                  {socialFeed.length === 0 ? (
-                    <div className="bg-card p-12 rounded-[32px] border border-border text-center space-y-4">
-                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto text-2xl opacity-50">📡</div>
-                      <div>
-                        <h4 className="font-display font-black uppercase">O silêncio do guerreiro</h4>
-                        <p className="text-muted-foreground text-[10px] uppercase tracking-tighter">Siga outros atletas no Ranking para ver seus treinos aqui.</p>
-                      </div>
-                    </div>
-                  ) : (
-                    socialFeed.map((workout: any) => (
-                      <motion.div 
-                        key={workout.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-card rounded-[32px] border border-border overflow-hidden shadow-xl"
-                      >
-                        {/* Header */}
-                        <div className="p-4 border-b border-border/50 flex items-center justify-between">
-                          <div 
-                            className="flex items-center gap-3 cursor-pointer group"
-                            onClick={() => setSelectedUserForProfile(workout.profile)}
-                          >
-                            <div className="w-10 h-10 rounded-full bg-muted border-2 border-primary/20 overflow-hidden">
-                              {workout.profile?.avatar_url ? (
-                                <img src={workout.profile.avatar_url} className="w-full h-full object-cover" />
-                              ) : <span>👤</span>}
-                            </div>
-                            <div>
-                              <p className="text-xs font-black uppercase group-hover:text-primary transition-colors">{workout.profile?.full_name || 'Atleta'}</p>
-                              <p className="text-[8px] text-muted-foreground font-bold uppercase">{format(workout.date, 'dd/MM/yyyy HH:mm')}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-full text-[8px] font-black text-primary border border-primary/20">
-                            <Trophy className="w-2 h-2" /> +{workout.xpEarned || 0} XP
-                          </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="p-6 space-y-4">
-                          <div>
-                            <h4 className="text-lg font-display font-black uppercase tracking-tight leading-none mb-1">{workout.name}</h4>
-                            <div className="flex gap-3">
-                              <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                                <Weight className="w-3 h-3 text-primary" /> {workout.totalVolume?.toLocaleString()} kg
-                              </span>
-                              <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-orange-500" /> {Math.floor(workout.duration / 60)} min
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Exercise Summary Preview */}
-                          <div className="space-y-1">
-                            {workout.exercises?.slice(0, 3).map((ex: any, idx: number) => (
-                              <div key={idx} className="bg-muted/30 px-3 py-2 rounded-xl flex justify-between items-center">
-                                <span className="text-[10px] font-bold uppercase tracking-tighter truncate max-w-[150px]">{ex.name}</span>
-                                <span className="text-[8px] font-black text-muted-foreground">{ex.sets?.length} séries</span>
-                              </div>
-                            ))}
-                            {workout.exercises?.length > 3 && (
-                              <p className="text-[8px] font-bold text-center text-muted-foreground pt-1">+ {workout.exercises.length - 3} exercícios no treino</p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Footer - Interactions */}
-                        <div className="px-4 py-3 bg-muted/20 flex gap-2 border-t border-border/50">
-                          <button 
-                            onClick={async () => {
-                              await supportWorkout(workout.id);
-                              // Feedback visual imediato
-                            }}
-                            className="flex-1 bg-card border border-border py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/10 hover:border-primary/30 transition-all active:scale-95 text-[9px] font-black uppercase tracking-widest"
-                          >
-                            <Flame className="w-3 h-3 text-orange-500" /> Apoiar
-                          </button>
-                          <button 
-                            className="flex-1 bg-card border border-border py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/10 hover:border-primary/30 transition-all active:scale-95 text-[9px] font-black uppercase tracking-widest"
-                            onClick={() => setSelectedHistoryWorkout(workout)}
-                          >
-                            <MessageCircle className="w-3 h-3 text-blue-500" /> Detalhes
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))
-                  )}
-                </div>
-              ) : (
-                /* RANKING ELITE */
-                <div className="space-y-6 animate-in fade-in duration-500">
-                  <div className="bg-card p-6 rounded-2xl border border-border space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-display font-black uppercase text-xs tracking-widest text-muted-foreground">Sua Classificação</h3>
-                  <div className="flex gap-1 p-1 bg-muted rounded-xl">
-                    {['weekly', 'monthly', 'all'].map(p => (
-                      <button 
-                        key={p} 
-                        onClick={() => setRankingTimeframe(p as any)}
-                        className={cn(
-                          "px-3 py-1 text-[8px] font-black uppercase rounded-lg transition-all",
-                          rankingTimeframe === p ? "bg-background text-primary shadow-sm" : "hover:bg-background/50 text-muted-foreground"
-                        )}
-                      >
-                        {p === 'all' ? 'Total' : p === 'weekly' ? 'Sem' : 'Mês'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {/* Weight Category Filter */}
-                  <div className="flex gap-2 p-1 bg-muted/50 rounded-xl overflow-x-auto no-scrollbar">
-                    {[
-                      { id: 'all', label: 'Todos Pesos' },
-                      { id: 'pena', label: 'Pena (<70kg)' },
-                      { id: 'medio', label: 'Médio (70-85kg)' },
-                      { id: 'pesado', label: 'Pesado (>85kg)' }
-                    ].map(cat => (
-                      <button 
-                        key={cat.id}
-                        onClick={() => setWeightCategory(cat.id as any)}
-                        className={cn(
-                          "px-3 py-1.5 text-[7px] font-black uppercase rounded-lg whitespace-nowrap transition-all",
-                          weightCategory === cat.id ? "bg-primary text-background shadow-md" : "text-muted-foreground hover:bg-background/50"
-                        )}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Gender and Age Filters */}
-                  <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                    <div className="flex gap-1 p-1 bg-muted/30 rounded-xl shrink-0">
-                      {['all', 'masculino', 'feminino'].map(g => (
-                        <button 
-                          key={g} 
-                          onClick={() => setGenderFilter(g as any)}
-                          className={cn(
-                            "px-3 py-1.5 text-[7px] font-black uppercase rounded-lg transition-all",
-                            genderFilter === g ? "bg-card border border-border shadow-sm scale-[1.02]" : "text-muted-foreground opacity-50"
-                          )}
-                        >
-                          {g === 'all' ? 'Tudo' : g === 'masculino' ? 'Masc' : 'Fem'}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="flex gap-1 p-1 bg-muted/30 rounded-xl shrink-0">
-                      {['all', 'young', 'adult', 'master', 'senior'].map(a => (
-                        <button 
-                          key={a}
-                          onClick={() => setAgeFilter(a as any)}
-                          className={cn(
-                            "px-3 py-1.5 text-[7px] font-black uppercase rounded-lg transition-all",
-                            ageFilter === a ? "bg-card border border-border shadow-sm scale-[1.02]" : "text-muted-foreground opacity-50"
-                          )}
-                        >
-                          {a === 'all' ? 'Idades' : a === 'young' ? 'Jovem' : a === 'adult' ? 'Adulto' : a === 'master' ? 'Master' : 'Sênior'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-                <div className="flex items-end justify-around py-4 h-48 bg-muted/20 rounded-[24px] relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent pointer-events-none" />
-                  
-                  {/* 3rd Place */}
-                  <div 
-                    className="flex flex-col items-center gap-2 cursor-pointer active:scale-95 transition-transform"
-                    onClick={() => {
-                      const u = sortedRanking[2];
-                      if (u) setSelectedUserForProfile(u);
-                    }}
-                  >
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-lg border-2 border-[#CD7F32] overflow-hidden">
-                      {sortedRanking[2]?.avatar_url ? (
-                        <img src={sortedRanking[2].avatar_url} className="w-full h-full object-cover" />
-                      ) : '👤'}
-                    </div>
-                    <div className="w-12 h-16 bg-[#CD7F32]/20 border-t-4 border-[#CD7F32] rounded-t-lg flex items-center justify-center font-black">3º</div>
-                  </div>
-
-                  {/* 1st Place */}
-                  <div 
-                    className="flex flex-col items-center gap-2 mb-4 scale-110 cursor-pointer active:scale-105 transition-transform"
-                    onClick={() => {
-                      const u = sortedRanking[0];
-                      if (u) setSelectedUserForProfile(u);
-                    }}
-                  >
-                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-xl border-2 border-primary shadow-[0_0_20px_rgba(255,215,0,0.2)] overflow-hidden">
-                      {sortedRanking[0]?.avatar_url ? (
-                        <img src={sortedRanking[0].avatar_url} className="w-full h-full object-cover" />
-                      ) : '👑'}
-                    </div>
-                    <div className="w-16 h-28 bg-primary/10 border-t-4 border-primary rounded-t-lg flex items-center justify-center font-black">1º</div>
-                  </div>
-
-                  {/* 2nd Place */}
-                  <div 
-                    className="flex flex-col items-center gap-2 cursor-pointer active:scale-95 transition-transform"
-                    onClick={() => {
-                      const u = sortedRanking[1];
-                      if (u) setSelectedUserForProfile(u);
-                    }}
-                  >
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-lg border-2 border-[#C0C0C0] overflow-hidden">
-                      {sortedRanking[1]?.avatar_url ? (
-                        <img src={sortedRanking[1].avatar_url} className="w-full h-full object-cover" />
-                      ) : '👤'}
-                    </div>
-                    <div className="w-12 h-20 bg-[#C0C0C0]/20 border-t-4 border-[#C0C0C0] rounded-t-lg flex items-center justify-center font-black">2º</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-primary text-background rounded-2xl shadow-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-background/20 rounded-full flex items-center justify-center font-black">
-                      #{sortedRanking.findIndex(p => p.id === session?.user?.id) + 1 || '--'}
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Sua Posição</p>
-                      <p className="font-display font-black uppercase">
-                        {rankingCategory === 'strength' 
-                          ? `${Math.floor(userStats.strengthScore || 0)} KG`
-                          : rankingCategory === 'frequency'
-                          ? `${userStats.streak || 0} DIAS`
-                          : rankingCategory === 'volume'
-                          ? `${(rankingTimeframe === 'weekly' ? (userStats.weeklyVolume || 0) : rankingTimeframe === 'monthly' ? (userStats.monthlyVolume || 0) : (userStats.totalWeight || 0)).toLocaleString()} KG`
-                          : `${(rankingTimeframe === 'weekly' ? (userStats.weeklyPoints || 0) : rankingTimeframe === 'monthly' ? (userStats.monthlyPoints || 0) : (userStats.points || 0)).toLocaleString()} PTS`
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-              {/* Ranking Categories */}
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { id: 'volume', label: 'Volume Total', icon: BarChart3, color: 'text-primary' },
-                  { id: 'strength', label: 'Força Bruta', icon: Weight, color: 'text-orange-500' },
-                  { id: 'frequency', label: 'Frequência', icon: Flame, color: 'text-blue-500' },
-                  { id: 'evolution', label: 'Evolução', icon: Zap, color: 'text-purple-500' }
-                ].map(cat => (
-                  <button 
-                    key={cat.id} 
-                    onClick={() => setRankingCategory(cat.id as any)}
-                    className={cn(
-                      "p-4 rounded-[20px] bg-card border flex flex-col items-center text-center gap-3 transition-all active:scale-95",
-                      rankingCategory === cat.id ? "border-primary shadow-lg scale-105" : "border-border"
-                    )}
-                  >
-                    <div className={cn("p-3 rounded-2xl", rankingCategory === cat.id ? "bg-primary text-background" : "bg-muted text-muted-foreground opacity-60")}>
-                      <cat.icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[10px] uppercase tracking-tighter line-clamp-1">{cat.label}</h4>
-                      <p className="text-[8px] text-muted-foreground uppercase font-black">Ver Top 50</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              {/* Hall da Fama - NEW PHASE 10 */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Trophy className="w-3 h-3 text-primary" /> Hall da Fama (Recordes)
-                  </h3>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {hallOfFame.map(record => (
-                    <div 
-                      key={record.id} 
-                      onClick={() => record.user && setSelectedUserForProfile(record.user)}
-                      className="bg-card/40 border border-border p-3 rounded-2xl flex flex-col items-center gap-2 relative overflow-hidden group cursor-pointer active:scale-95 transition-all"
-                    >
-                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-lg border-2 border-primary/20 overflow-hidden relative">
-                        {record.user?.avatar_url ? (
-                          <img src={record.user.avatar_url} className="w-full h-full object-cover" />
-                        ) : record.user ? '👤' : '⌛'}
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[6px] font-black uppercase text-muted-foreground">{record.label}</p>
-                        <p className="text-[10px] font-display font-black text-primary">{Math.floor(record.value)} kg</p>
-                        <p className="text-[6px] font-bold text-muted-foreground truncate w-16 px-1">
-                          {record.user?.full_name?.split(' ')[0] || record.user?.email?.split('@')[0] || '-'}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Leaderboard Detail List */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between px-1">
-                  <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Top Líderes - {rankingCategory.toUpperCase()}</h3>
-                </div>
-                
-                <div className="bg-card rounded-[24px] border border-border divide-y divide-border overflow-hidden shadow-sm">
-                  {sortedRanking
-                    .map((user, idx) => {
-                      const isMe = user.id === session?.user?.id;
-                      return (
-                        <div 
-                          key={user.id} 
-                          onClick={() => setSelectedUserForProfile(user)}
-                          className={cn(
-                            "p-4 flex items-center justify-between transition-colors cursor-pointer active:bg-muted/10", 
-                            isMe ? "bg-primary/5 shadow-inner" : "hover:bg-muted/5"
-                          )}
-                        >
-                          <div className="flex items-center gap-4 text-left">
-                            <span className={cn("font-black text-xs w-4", idx === 0 ? "text-primary" : "text-muted-foreground opacity-50")}>#{idx + 1}</span>
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs overflow-hidden">
-                              {user.avatar_url ? (
-                                <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <span>👤</span>
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-bold text-sm tracking-tight flex items-center gap-1">
-                                {user.full_name || 'Usuário'} 
-                                {isMe && <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded ml-1">VOCÊ</span>}
-                                {user.is_test && <span className="text-[8px] bg-muted text-muted-foreground px-1 py-0.5 rounded font-mono">TESTE</span>}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground font-mono">
-                                {rankingCategory === 'strength' 
-                                  ? `${Math.floor(user.strength_score || 0)} KG`
-                                  : rankingCategory === 'frequency'
-                                  ? `${user.streak || 0} DIAS`
-                                  : rankingCategory === 'volume'
-                                  ? `${(rankingTimeframe === 'weekly' ? (user.weekly_volume || 0) : rankingTimeframe === 'monthly' ? (user.monthly_volume || 0) : (user.total_weight || 0)).toLocaleString()} KG`
-                                  : `${(rankingTimeframe === 'weekly' ? (user.weekly_points || 0) : rankingTimeframe === 'monthly' ? (user.monthly_points || 0) : (user.points || 0)).toLocaleString()} PTS`
-                                }
-                              </p>
-                            </div>
-                          </div>
-                          {idx === 0 && <span className="text-xl">👑</span>}
-                          {idx !== 0 && <ChevronRight className="w-4 h-4 text-muted-foreground opacity-30" />}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+          <AnimatePresence mode="wait">
+            {activeTab === 'workout' && (
+              <WorkoutTab 
+                session={session}
+                currentTime={currentTime}
+                events={events}
+                currentEventIndex={currentEventIndex}
+                participateInEvent={participateInEvent}
+                currentUserRole={currentUserRole}
+                setShowAdminDashboard={setShowAdminDashboard}
+                setShowCreateEvent={setShowCreateEvent}
+                setShowCreateBadge={setShowCreateBadge}
+                setShowCreateTip={setShowCreateTip}
+                setEditingRoutine={setEditingRoutine}
+                setShowRoutineEditor={setShowRoutineEditor}
+                tips={tips}
+                routineSection={routineSection}
+                setRoutineSection={setRoutineSection}
+                setRoutineToDelete={setRoutineToDelete}
+                workoutTime={workoutTime}
+                setShowCancelConfirm={setShowCancelConfirm}
+                setWorkoutName={setWorkoutName}
+                setShowFinishModal={setShowFinishModal}
+                setShowExercisePicker={setShowExercisePicker}
+              />
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-      </main>
+
+            {activeTab === 'history' && (
+              <HistoryTab 
+                history={history}
+                setSelectedHistoryWorkout={setSelectedHistoryWorkout}
+              />
+            )}
+
+            {activeTab === 'profile' && (
+              <ProfileTab 
+                userStats={userStats}
+                session={session}
+                history={history}
+                streak={streak}
+                totalXP={totalXP}
+                badges={badges}
+                getActivityData={getActivityData}
+                setShowEditProfile={setShowEditProfile}
+                supabase={supabase}
+                setTempPhoto={setTempPhoto}
+                setOriginalFile={setOriginalFile}
+                setShowPhotoModal={setShowPhotoModal}
+              />
+            )}
+
+            {activeTab === 'ranking' && (
+              <RankingTab 
+                communityMode={communityMode}
+                setCommunityMode={setCommunityMode}
+                socialFeed={socialFeed}
+                setSelectedUserForProfile={setSelectedUserForProfile}
+                supportWorkout={supportWorkout}
+                setSelectedHistoryWorkout={setSelectedHistoryWorkout}
+                rankingTimeframe={rankingTimeframe}
+                setRankingTimeframe={setRankingTimeframe}
+                weightCategory={weightCategory}
+                setWeightCategory={setWeightCategory}
+                genderFilter={genderFilter}
+                setGenderFilter={setGenderFilter}
+                ageFilter={ageFilter}
+                setAgeFilter={setAgeFilter}
+                sortedRanking={sortedRanking}
+                session={session}
+                rankingCategory={rankingCategory}
+                setRankingCategory={setRankingCategory}
+                userStats={userStats}
+                hallOfFame={hallOfFame}
+              />
+            )}
+          </AnimatePresence>
+        </main>
       {/* Edit Profile Modal */}
       <AnimatePresence>
         {showEditProfile && (
@@ -1889,6 +702,16 @@ function AppContent({ session }: { session: Session | null }) {
                     defaultValue={userStats.fullName} 
                     onChange={(e) => updateProfile({ fullName: e.target.value })}
                     className="w-full bg-muted border border-border rounded-xl px-4 py-4 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Biografia (Bio)</label>
+                  <textarea 
+                    placeholder="Conte sobre sua jornada fitness..."
+                    defaultValue={userStats.bio} 
+                    onChange={(e) => updateProfile({ bio: e.target.value })}
+                    className="w-full bg-muted border border-border rounded-xl px-4 py-4 font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none h-24 text-xs"
                   />
                 </div>
 
@@ -3127,333 +1950,27 @@ function AppContent({ session }: { session: Session | null }) {
             exit={{ opacity: 0, y: 100 }}
             className="fixed inset-0 z-[1000] bg-background flex flex-col"
           >
-            <div className="p-4 border-b border-border flex items-center justify-between bg-card shrink-0">
-              <button onClick={() => setShowAdminDashboard(false)} className="p-2 text-muted-foreground"><X className="w-6 h-6" /></button>
-              <h2 className="font-display font-bold uppercase tracking-widest text-sm">Painel Administrativo</h2>
-              <div className="w-10" />
-            </div>
-
-            {/* Tabs Header */}
-            <div className="flex border-b border-border bg-card shrink-0 px-2 overflow-x-auto scrollbar-hide">
-              {[
-                { id: 'events', label: 'Eventos', icon: Megaphone },
-                { id: 'validation', label: 'Validar', icon: CheckSquare },
-                { id: 'exercises', label: 'Exercícios', icon: Dumbbell },
-                { id: 'supabase', label: 'Supabase', icon: Database },
-                { id: 'settings', label: 'Configurações', icon: Settings }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setAdminTab(tab.id as any)}
-                  className={cn(
-                    "flex-1 min-w-[100px] flex flex-col items-center gap-1 py-4 text-[10px] font-bold uppercase tracking-tighter transition-all relative",
-                    adminTab === tab.id ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  <tab.icon className={cn("w-4 h-4", adminTab === tab.id ? "animate-pulse" : "")} />
-                  {tab.label}
-                  {adminTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {adminTab === 'events' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase text-muted-foreground">Eventos Ativos</h3>
-                    <button 
-                      onClick={() => setShowCreateEvent(true)}
-                      className="text-[10px] font-bold text-primary uppercase bg-primary/10 px-3 py-1.5 rounded-lg"
-                    >
-                      + Novo Evento
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {events.map(event => (
-                      <div key={event.id} className="bg-card p-4 rounded-2xl border border-border flex items-center justify-between group">
-                        <div className="flex items-center gap-4 flex-1 mr-4">
-                          <div className={cn("p-3 rounded-xl shrink-0", event.type === 'special' ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
-                            {event.type === 'special' ? <Trophy className="w-5 h-5" /> : <Megaphone className="w-5 h-5" />}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs tracking-tight truncate">{event.title}</p>
-                            <p className="text-[8px] text-muted-foreground uppercase font-mono">
-                              {new Date(event.startDate).toLocaleDateString('pt-BR')} - {new Date(event.endDate).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button 
-                            onClick={() => {
-                              setEditingEvent(event);
-                              setShowEditEvent(true);
-                            }}
-                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => deleteEvent(event.id)} 
-                            className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {adminTab === 'validation' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase text-muted-foreground px-1">Treinos Pendentes de Validação</h3>
-                    <div className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded-full uppercase">
-                      {history.filter(w => !w.isValidated).length} Pendentes
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {history.filter(w => !w.isValidated).length === 0 ? (
-                      <div className="p-12 text-center bg-card rounded-[32px] border border-dashed border-border flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center opacity-30">
-                          <CheckCircle2 className="w-8 h-8" />
-                        </div>
-                        <p className="text-muted-foreground text-sm font-medium">Todos os treinos estão validados!</p>
-                      </div>
-                    ) : (
-                      history.filter(w => !w.isValidated).map(workout => (
-                        <motion.div 
-                          key={workout.id} 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="bg-card p-5 rounded-[24px] border border-border space-y-4"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Solicitação de XP</p>
-                              <h4 className="font-bold text-lg leading-tight">{workout.name}</h4>
-                              <p className="text-xs text-muted-foreground">João Silva • {format(workout.date, "dd/MM/yy HH:mm")}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xl font-display font-black text-primary">+{workout.points} PTS</p>
-                              <p className="text-[8px] font-bold uppercase text-muted-foreground tracking-tighter">Motor Universal</p>
-                            </div>
-                          </div>
-
-                          <div className="p-3 bg-muted/30 rounded-xl space-y-2 border border-border/40">
-                            {workout.exercises.map(ex => (
-                              <div key={ex.exerciseId} className="flex justify-between text-[10px] items-center">
-                                <span className="font-bold truncate max-w-[150px]">{ex.name}</span>
-                                <span className="text-muted-foreground">{ex.sets.length}S • {ex.sets[0]?.weight || 0}kg x {ex.sets[0]?.reps || 0}r</span>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={() => {
-                                validateWorkout(workout.id, 'gold');
-                                addPoints(workout.points);
-                              }}
-                              className="flex-1 bg-primary text-background font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-lg active:scale-95 transition-all"
-                            >
-                              Aprovar Pontos
-                            </button>
-                            <button 
-                              onClick={() => validateWorkout(workout.id, 'bronze')}
-                              className="px-4 bg-muted text-muted-foreground font-bold py-3 rounded-xl uppercase text-[10px] hover:bg-destructive/10 hover:text-destructive transition-colors"
-                            >
-                              Recusar
-                            </button>
-                          </div>
-                        </motion.div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {adminTab === 'exercises' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase text-muted-foreground">Repositório de Exercícios</h3>
-                  </div>
-                  
-                  {/* Create New Exercise Form */}
-                  <div className="bg-primary/5 p-4 rounded-2xl border border-primary/20 space-y-4">
-                    <p className="text-[10px] font-bold uppercase text-primary">Adicionar Nova Máquina/Exercício</p>
-                    <div className="grid grid-cols-1 gap-3">
-                      <input id="new-ex-name" type="text" placeholder="Nome (Ex: Leg Press Articulado)" className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm" />
-                      <div className="grid grid-cols-2 gap-3">
-                        <select id="new-ex-muscle" className="bg-card border border-border rounded-xl px-4 py-3 text-sm">
-                          <option value="Pernas">Pernas</option>
-                          <option value="Peito">Peito</option>
-                          <option value="Costas">Costas</option>
-                          <option value="Ombros">Ombros</option>
-                          <option value="Braços">Braços</option>
-                        </select>
-                        <select id="new-ex-equip" className="bg-card border border-border rounded-xl px-4 py-3 text-sm">
-                          <option value="Máquina">Máquina</option>
-                          <option value="Halteres">Halteres</option>
-                          <option value="Barra">Barra</option>
-                          <option value="Cabo">Cabo</option>
-                        </select>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          const name = (document.getElementById('new-ex-name') as HTMLInputElement).value;
-                          const muscle = (document.getElementById('new-ex-muscle') as HTMLSelectElement).value;
-                          const equipment = (document.getElementById('new-ex-equip') as HTMLSelectElement).value;
-                          if (name) {
-                            addCustomExercise({ name, muscle, equipment });
-                            (document.getElementById('new-ex-name') as HTMLInputElement).value = '';
-                          }
-                        }}
-                        className="w-full bg-primary text-background font-bold py-3 rounded-xl text-xs"
-                      >
-                        Confirmar Adição
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {customExercises.map(ex => (
-                      <div key={ex.id} className="bg-card p-4 rounded-2xl border border-border flex items-center justify-between border-l-4 border-l-primary">
-                        <div>
-                          <p className="font-bold text-sm tracking-tight">{ex.name}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">{ex.muscle} • {ex.equipment}</p>
-                        </div>
-                        <button onClick={() => deleteCustomExercise(ex.id)} className="p-2 text-destructive">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    {BASE_EXERCISES.slice(0, 5).map(ex => (
-                      <div key={ex.id} className="bg-card p-4 rounded-2xl border border-border flex items-center justify-between opacity-50 grayscale">
-                        <div>
-                          <p className="font-bold text-sm tracking-tight">{ex.name}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">{ex.muscle} • {ex.equipment}</p>
-                        </div>
-                        <div className="text-[8px] font-bold bg-muted px-2 py-1 rounded">SISTEMA</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {adminTab === 'supabase' && (
-                <div className="space-y-6">
-                  <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                        <Database className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="font-display font-black uppercase text-sm">Status do Backend</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase font-mono">Real-time Synchronization</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 pt-2">
-                      <div className="flex items-center justify-between p-3 bg-card rounded-xl border border-border">
-                        <span className="text-[10px] font-bold uppercase text-muted-foreground">Conectado ao Projeto</span>
-                        <div className="flex items-center gap-2">
-                          <div className={cn("w-2 h-2 rounded-full animate-pulse", isSupabaseConfigured ? "bg-green-500" : "bg-red-500")} />
-                          <span className="text-[10px] font-black uppercase">{isSupabaseConfigured ? 'Ativo' : 'Offline'}</span>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-muted/30 rounded-xl space-y-2 border border-transparent hover:border-primary/20 transition-all">
-                        <p className="text-[10px] font-bold uppercase text-primary">Instruções de Configuração</p>
-                        <ul className="text-[10px] space-y-2 text-muted-foreground">
-                          <li className="flex items-start gap-2">
-                            <span className="text-primary font-black">•</span>
-                            <span>Certifique-se de que as chaves `VITE_SUPABASE_URL` e `ANON_KEY` estão no seu arquivo `.env`.</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-primary font-black">•</span>
-                            <span>Execute o script SQL fornecido (supabase_schema.sql) no seu SQL Editor do Supabase.</span>
-                          </li>
-                        </ul>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <button 
-                          onClick={() => generateTestData()}
-                          className="py-4 bg-muted hover:bg-muted/80 text-foreground font-black rounded-xl uppercase tracking-widest text-[9px] shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
-                        >
-                          <PlusCircle className="w-4 h-4 text-primary" />
-                          Gerar 50 Testes
-                        </button>
-                        <button 
-                          onClick={() => resetTestData()}
-                          className="py-4 bg-destructive/10 hover:bg-destructive/20 text-destructive font-black rounded-xl uppercase tracking-widest text-[9px] shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Resetar Testes
-                        </button>
-                      </div>
-
-                      <button 
-                        onClick={() => fetchInitialData()}
-                        className="w-full py-4 bg-primary text-background font-black rounded-xl uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all"
-                      >
-                        Sincronizar Manualmente
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="px-2 space-y-3">
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Tabelas Monitoradas</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {['profiles', 'workouts', 'events', 'badges'].map(t => (
-                        <div key={t} className="p-3 bg-card border border-border rounded-xl flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase">{t}</span>
-                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {adminTab === 'settings' && (
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-bold uppercase text-muted-foreground">Configurações Gerais</h3>
-                    <div className="space-y-3">
-                      {[
-                        { label: 'Permitir criação de rotinas por Alunos', key: 'allow_user_routines' },
-                        { label: 'Habilitar sistema de gamificação (XP)', key: 'enable_xp' },
-                        { label: 'Modo Manutenção (Apenas Staff)', key: 'maint_mode' }
-                      ].map(s => (
-                        <div key={s.key} className="bg-card p-4 rounded-2xl border border-border flex items-center justify-between">
-                          <span className="text-xs font-medium">{s.label}</span>
-                          <button className="w-10 h-5 bg-primary/20 rounded-full relative">
-                            <div className="absolute left-1 top-1 w-3 h-3 bg-primary rounded-full shadow-sm" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-primary/10 p-5 rounded-2xl border border-primary/20 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-background">
-                        <User className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-primary">Log de Atividades Admin</p>
-                        <p className="text-[10px] text-muted-foreground">Último acesso: Hoje às 14:32</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <AdminDashboard 
+              showAdminDashboard={showAdminDashboard}
+              setShowAdminDashboard={setShowAdminDashboard}
+              events={events}
+              setEditingEvent={setEditingEvent}
+              setShowEditEvent={setShowEditEvent}
+              deleteEvent={deleteEvent}
+              history={history}
+              validateWorkout={validateWorkout}
+              addPoints={(pts) => addPoints(pts)}
+              customExercises={customExercises}
+              addCustomExercise={addCustomExercise}
+              deleteCustomExercise={deleteCustomExercise}
+              isSupabaseConfigured={isSupabaseConfigured}
+              generateTestData={generateTestData}
+              resetTestData={resetTestData}
+              fetchInitialData={fetchInitialData}
+              setShowCreateEvent={setShowCreateEvent}
+              setShowCreateBadge={setShowCreateBadge}
+              setShowCreateTip={setShowCreateTip}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -3603,70 +2120,11 @@ function AppContent({ session }: { session: Session | null }) {
             </motion.div>
           </motion.div>
         )}
-        {showNotifications && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex justify-end"
-            onClick={() => setShowNotifications(false)}
-          >
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="w-full max-w-sm bg-card border-l border-border h-full flex flex-col shadow-2xl"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="p-6 border-b border-border flex items-center justify-between">
-                <h3 className="text-xl font-display font-black uppercase tracking-tighter">Notificações</h3>
-                <button 
-                  onClick={() => setShowNotifications(false)}
-                  className="p-2 hover:bg-muted rounded-full transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
-                {notifications.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center opacity-30 space-y-2">
-                    <Bell className="w-12 h-12 text-primary" />
-                    <p className="text-[10px] font-bold uppercase tracking-widest">Nada por aqui ainda</p>
-                  </div>
-                ) : (
-                  notifications.map(notification => (
-                    <div 
-                      key={notification.id}
-                      className={cn(
-                        "p-4 rounded-[20px] border transition-all flex gap-3 items-start",
-                        notification.is_read ? "bg-muted/20 border-border/50 opacity-70" : "bg-primary/5 border-primary/20 shadow-sm"
-                      )}
-                    >
-                      <div className="w-10 h-10 rounded-full bg-muted overflow-hidden border border-border/50 shrink-0">
-                        {notification.actor?.avatar_url ? (
-                          <img src={notification.actor.avatar_url} className="w-full h-full object-cover" />
-                        ) : <div className="w-full h-full flex items-center justify-center text-xs">👤</div>}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-[10px] leading-tight font-medium">
-                          <span className="font-black uppercase">{notification.actor?.full_name || 'Alguém'}</span>
-                          {notification.type === 'follow' ? ' começou a te seguir!' : 
-                           notification.type === 'support' ? ' apoiou seu treino!' : 
-                           ' interagiu com você.'}
-                        </p>
-                        <p className="text-[8px] text-muted-foreground font-bold uppercase">
-                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: ptBR })}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
+        <NotificationPanel 
+          showNotifications={showNotifications}
+          setShowNotifications={setShowNotifications}
+          notifications={notifications}
+        />
       </AnimatePresence>
     </>
   );
