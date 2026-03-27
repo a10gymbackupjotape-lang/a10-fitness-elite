@@ -254,6 +254,7 @@ function AppContent({ session }: { session: Session | null }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const { 
     userStats, 
@@ -494,6 +495,14 @@ function AppContent({ session }: { session: Session | null }) {
     return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
   };
 
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Auth />
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="min-h-screen bg-background text-foreground flex flex-col lg:flex-row text-xs">
@@ -522,9 +531,28 @@ function AppContent({ session }: { session: Session | null }) {
         <h1 className="text-2xl font-display font-bold tracking-tight">
           {activeTab === 'workout' ? 'Treino' : activeTab === 'history' ? 'Histórico' : activeTab === 'ranking' ? 'Ranking' : 'Perfil'}
         </h1>
-        <button className="p-2 rounded-full hover:bg-muted transition-colors">
-          <Settings className="w-6 h-6" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => {
+              setShowNotifications(true);
+              markNotificationsAsRead();
+            }}
+            className="p-2 rounded-full hover:bg-muted relative transition-colors"
+          >
+            <Bell className="w-6 h-6" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-background animate-bounce">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          <button 
+            onClick={() => { setActiveTab('profile'); setShowEditProfile(true); }}
+            className="p-2 rounded-full hover:bg-muted transition-colors"
+          >
+            <Settings className="w-6 h-6" />
+          </button>
+        </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -560,6 +588,32 @@ function AppContent({ session }: { session: Session | null }) {
                 {item.label}
               </button>
             ))}
+            
+            <button
+              onClick={() => {
+                setShowNotifications(true);
+                markNotificationsAsRead();
+              }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <Bell className="w-5 h-5" />
+                <span>Notificações</span>
+              </div>
+              {unreadCount > 0 && (
+                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => supabase.auth.signOut()}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-500/10 transition-all mt-auto border border-transparent hover:border-red-500/20"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Sair da Conta</span>
+            </button>
           </nav>
 
           <div className="pt-6 border-t border-border">
@@ -663,20 +717,6 @@ function AppContent({ session }: { session: Session | null }) {
                         </p>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => {
-                        setShowNotifications(true);
-                        markNotificationsAsRead();
-                      }}
-                      className="bg-primary/10 p-2 rounded-xl relative hover:scale-105 active:scale-95 transition-all"
-                    >
-                      <Bell className="w-5 h-5 text-primary" />
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-background animate-bounce">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </button>
                   </div>
 
                   {/* Promo/Events Section */}
@@ -3488,7 +3528,8 @@ function AppContent({ session }: { session: Session | null }) {
                   </button>
                   <button 
                     onClick={async () => {
-                      if (originalFile && tempPhoto) {
+                      if (originalFile && tempPhoto && !isUploadingPhoto) {
+                        setIsUploadingPhoto(true);
                         try {
                           // Create a canvas to crop the image
                           const canvas = document.createElement('canvas');
@@ -3503,12 +3544,8 @@ function AppContent({ session }: { session: Session | null }) {
                               ctx.fillStyle = 'black';
                               ctx.fillRect(0, 0, canvas.width, canvas.height);
                               
-                              // Calculate how to draw the image based on zoom and position
-                              // The view area is 192px (w-48)
                               const viewSize = 192;
                               const scale = zoom;
-                              
-                              // Calculate ratios
                               const imgRatio = img.width / img.height;
                               let drawW, drawH;
                               
@@ -3520,9 +3557,7 @@ function AppContent({ session }: { session: Session | null }) {
                                 drawH = drawW / imgRatio;
                               }
                               
-                              // Adjust for canvas scale (viewSize to 400px)
                               const canvasScale = 400 / viewSize;
-                              
                               const finalW = drawW * canvasScale;
                               const finalH = drawH * canvasScale;
                               const finalX = (canvas.width / 2) + (position.x * canvasScale) - (finalW / 2);
@@ -3535,7 +3570,7 @@ function AppContent({ session }: { session: Session | null }) {
                                   const croppedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
                                   await useWorkoutStore.getState().uploadAvatar(croppedFile);
                                   setShowPhotoModal(false);
-                                  // Reset states
+                                  setIsUploadingPhoto(false);
                                   setZoom(1);
                                   setPosition({ x: 0, y: 0 });
                                 }
@@ -3545,13 +3580,23 @@ function AppContent({ session }: { session: Session | null }) {
                           img.src = tempPhoto;
                         } catch (err) {
                           console.error(err);
+                          setIsUploadingPhoto(false);
                           alert('Erro ao processar imagem.');
                         }
                       }
                     }}
-                    className="flex-1 py-3 font-black rounded-xl bg-primary text-background text-xs uppercase tracking-[0.2em] hover:shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                    disabled={isUploadingPhoto}
+                    className={cn(
+                      "flex-1 py-3 font-black rounded-xl bg-primary text-background text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2",
+                      isUploadingPhoto ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg shadow-primary/20 active:scale-95"
+                    )}
                   >
-                    Confirmar
+                    {isUploadingPhoto ? (
+                      <>
+                        <div className="w-3 h-3 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                        Enviando...
+                      </>
+                    ) : 'Confirmar'}
                   </button>
                 </div>
               </div>
