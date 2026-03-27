@@ -36,28 +36,7 @@ A **A10 Fitness Elite** não é apenas um fitness tracker; é um ecossistema de 
 
 ---
 
-## 🚀 Início Rápido (Local)
 
-1. **Clonar Repositório**:
-   ```bash
-   git clone https://github.com/a10gymbackupjotape-lang/a10-fitness-elite.git
-   ```
-
-2. **Instalar Dependências**:
-   ```bash
-   npm install
-   ```
-
-3. **Configurar Ambiente**:
-   - Renomeie `.env.example` para `.env.local`.
-   - Adicione suas credenciais do **Supabase** (URL e Anon Key).
-
-4. **Modo Dev**:
-   ```bash
-   npm run dev
-   ```
-
----
 
 <div align="center">
   <p>Forjado com orgulho pela equipe <strong>A10 Fitness</strong>.</p>
