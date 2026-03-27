@@ -26,6 +26,20 @@ export interface Badge {
   earnedBy: string[]; // user ids
 }
 
+export interface Notification {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  type: 'follow' | 'support' | 'comment';
+  target_id: string;
+  is_read: boolean;
+  created_at: string;
+  actor?: {
+    full_name: string;
+    avatar_url: string;
+  };
+}
+
 export interface Tip {
   id: string;
   instructorName: string;
@@ -257,6 +271,8 @@ export interface WorkoutState {
   predefinedRoutines: RoutineTemplate[];
   follows: string[];
   socialFeed: any[];
+  notifications: Notification[];
+  unreadCount: number;
   clearLastBadgeEarned: () => void;
   
   updateProfile: (updates: Partial<UserStats>) => Promise<void>;
@@ -301,12 +317,17 @@ export interface WorkoutState {
   followUser: (targetUserId: string) => Promise<void>;
   unfollowUser: (targetUserId: string) => Promise<void>;
   fetchSocialFeed: () => Promise<void>;
+  fetchNotifications: () => Promise<void>;
+  markNotificationsAsRead: () => Promise<void>;
+  supportWorkout: (workoutId: string) => Promise<void>;
 }
 
 export const useWorkoutStore = create<WorkoutState>()(
   persist(
     (set, get) => ({
       activeWorkout: null,
+      notifications: [],
+      unreadCount: 0,
       updateProfile: async (updates) => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -478,6 +499,87 @@ export const useWorkoutStore = create<WorkoutState>()(
           console.error('Error fetching social feed:', err);
         }
       },
+
+      fetchNotifications: async () => {
+        if (!isSupabaseConfigured) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        try {
+          const { data, error } = await supabase
+            .from('notifications')
+            .select(`
+              *,
+              actor:profiles!actor_id(full_name, avatar_url)
+            `)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+          if (!error && data) {
+            const notifications = data.map(n => ({
+              id: n.id,
+              user_id: n.user_id,
+              actor_id: n.actor_id,
+              type: n.type as any,
+              target_id: n.target_id,
+              is_read: n.is_read,
+              created_at: n.created_at,
+              actor: n.actor
+            }));
+            set({ 
+              notifications,
+              unreadCount: notifications.filter(n => !n.is_read).length
+            });
+          }
+        } catch (err) {
+          console.error('Error fetching notifications:', err);
+        }
+      },
+
+      markNotificationsAsRead: async () => {
+        if (!isSupabaseConfigured) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        try {
+          const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('user_id', user.id)
+            .eq('is_read', false);
+
+          if (!error) {
+            set(state => ({
+              notifications: state.notifications.map(n => ({ ...n, is_read: true })),
+              unreadCount: 0
+            }));
+          }
+        } catch (err) {
+          console.error('Error marking notifications as read:', err);
+        }
+      },
+
+      supportWorkout: async (workoutId: string) => {
+        if (!isSupabaseConfigured) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        try {
+          const { error } = await supabase
+            .from('workout_supports')
+            .insert({ workout_id: workoutId, user_id: user.id });
+
+          if (!error) {
+            // Optimistic update could go here, but trigger handles notification
+            // We just need to ensure the action is successful
+          } else if (error.code === '23505') {
+            // Already supported, ignore or toggling can be added later
+          }
+        } catch (err) {
+          console.error('Error supporting workout:', err);
+        }
+      },
       
       clearLastBadgeEarned: () => set({ lastBadgeEarned: null }),
 
@@ -607,6 +709,9 @@ export const useWorkoutStore = create<WorkoutState>()(
             }));
           }
 
+          // 7. Fetch Notifications
+          get().fetchNotifications();
+
         } catch (err) {
           console.error('Error fetching initial data:', err);
         }
@@ -626,6 +731,8 @@ export const useWorkoutStore = create<WorkoutState>()(
           .on('postgres_changes', { event: '*', schema: 'public', table: 'custom_exercises' }, () => get().fetchInitialData())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'user_badges' }, () => get().fetchInitialData())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'event_participants' }, () => get().fetchInitialData())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => get().fetchNotifications())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'workout_supports' }, () => get().fetchSocialFeed())
           .subscribe();
 
         return () => {

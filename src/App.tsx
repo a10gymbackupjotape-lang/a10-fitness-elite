@@ -4,6 +4,8 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
+import { format, startOfDay, formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Dumbbell, 
@@ -55,7 +57,6 @@ import { useWorkoutStore, SetType, CompletedWorkout, RoutineTemplate, UserRole, 
 import { BASE_EXERCISES, LibraryExercise } from './data/exercises';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { cn } from './lib/utils';
-import { format, startOfDay } from 'date-fns';
 import Auth from './components/Auth';
 import { Session } from '@supabase/supabase-js';
 
@@ -224,6 +225,7 @@ function AppContent({ session }: { session: Session | null }) {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [rankingTimeframe, setRankingTimeframe] = useState<'weekly' | 'monthly' | 'all'>('all');
   const [communityMode, setCommunityMode] = useState<'feed' | 'ranking'>('feed');
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const calculateAge = (birthDate: string) => {
     if (!birthDate) return 0;
@@ -261,7 +263,12 @@ function AppContent({ session }: { session: Session | null }) {
     follows,
     socialFeed,
     followUser,
-    unfollowUser
+    unfollowUser,
+    notifications,
+    unreadCount,
+    fetchNotifications,
+    markNotificationsAsRead,
+    supportWorkout
   } = useWorkoutStore();
 
   useEffect(() => {
@@ -656,9 +663,20 @@ function AppContent({ session }: { session: Session | null }) {
                         </p>
                       </div>
                     </div>
-                    <div className="bg-primary/10 p-2 rounded-xl">
+                    <button 
+                      onClick={() => {
+                        setShowNotifications(true);
+                        markNotificationsAsRead();
+                      }}
+                      className="bg-primary/10 p-2 rounded-xl relative hover:scale-105 active:scale-95 transition-all"
+                    >
                       <Bell className="w-5 h-5 text-primary" />
-                    </div>
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-background animate-bounce">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
                   </div>
 
                   {/* Promo/Events Section */}
@@ -1508,7 +1526,13 @@ function AppContent({ session }: { session: Session | null }) {
 
                         {/* Footer - Interactions */}
                         <div className="px-4 py-3 bg-muted/20 flex gap-2 border-t border-border/50">
-                          <button className="flex-1 bg-card border border-border py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/10 hover:border-primary/30 transition-all active:scale-95 text-[9px] font-black uppercase tracking-widest">
+                          <button 
+                            onClick={async () => {
+                              await supportWorkout(workout.id);
+                              // Feedback visual imediato
+                            }}
+                            className="flex-1 bg-card border border-border py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/10 hover:border-primary/30 transition-all active:scale-95 text-[9px] font-black uppercase tracking-widest"
+                          >
                             <Flame className="w-3 h-3 text-orange-500" /> Apoiar
                           </button>
                           <button 
@@ -3530,6 +3554,70 @@ function AppContent({ session }: { session: Session | null }) {
                     Confirmar
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+        {showNotifications && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-xl flex justify-end"
+            onClick={() => setShowNotifications(false)}
+          >
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="w-full max-w-sm bg-card border-l border-border h-full flex flex-col shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="p-6 border-b border-border flex items-center justify-between">
+                <h3 className="text-xl font-display font-black uppercase tracking-tighter">Notificações</h3>
+                <button 
+                  onClick={() => setShowNotifications(false)}
+                  className="p-2 hover:bg-muted rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+                {notifications.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center opacity-30 space-y-2">
+                    <Bell className="w-12 h-12 text-primary" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest">Nada por aqui ainda</p>
+                  </div>
+                ) : (
+                  notifications.map(notification => (
+                    <div 
+                      key={notification.id}
+                      className={cn(
+                        "p-4 rounded-[20px] border transition-all flex gap-3 items-start",
+                        notification.is_read ? "bg-muted/20 border-border/50 opacity-70" : "bg-primary/5 border-primary/20 shadow-sm"
+                      )}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-muted overflow-hidden border border-border/50 shrink-0">
+                        {notification.actor?.avatar_url ? (
+                          <img src={notification.actor.avatar_url} className="w-full h-full object-cover" />
+                        ) : <div className="w-full h-full flex items-center justify-center text-xs">👤</div>}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-[10px] leading-tight font-medium">
+                          <span className="font-black uppercase">{notification.actor?.full_name || 'Alguém'}</span>
+                          {notification.type === 'follow' ? ' começou a te seguir!' : 
+                           notification.type === 'support' ? ' apoiou seu treino!' : 
+                           ' interagiu com você.'}
+                        </p>
+                        <p className="text-[8px] text-muted-foreground font-bold uppercase">
+                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </motion.div>
           </motion.div>
