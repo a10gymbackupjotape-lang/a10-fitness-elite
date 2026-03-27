@@ -1,0 +1,415 @@
+use como referencia esse prompt para ui e ux da minha aplicação: 
+
+Título do Projeto: PWA Vibecoding – UI Kit Foundation
+
+Objetivo: Criar a fundação visual e técnica para um PWA focado em "Vibecoding", seguindo a metodologia de Design System Atômico. A interface deve ser altamente responsiva, acessível e transmitir uma sensação de fluidez e foco.
+
+1. Paleta de Cores (Cores Funcionais e Semânticas):
+
+    Neutros: Defina uma escala de 9 tons de cinza/azulado profundo (do #0D1117 ao #F0F6FC). O fundo principal deve ser quase preto, mas com profundidade.
+
+    Primária (Acento): Escolha uma cor vibrante (ex: Roxo Neon ou Verde Terminal) para estados ativos e CTAs.
+
+    Estados (Semântica): Defina tons pastéis desaturados para Sucesso, Erro e Aviso, mantendo o contraste necessário para acessibilidade (WCAG AA). 
+
+    Sintaxe (Vibe): Crie uma sub-paleta para blocos de código ou destaques baseada em temas como Dracula ou One Dark.
+
+2. Tipografia (Escala Modular):
+
+    Família Principal: Uma fonte Sans-Serif moderna e geométrica (ex: Inter ou Geist) para interface.
+
+    Família de Código: Uma fonte Monospaced legível (ex: JetBrains Mono ou Fira Code) para dados técnicos e títulos secundários.
+
+    Escala: Use uma proporção de 1.250 (Major Third). Defina estilos para H1, H2, Body (Regular e Bold) e Caption.
+
+3. Grid e Layout (Sistema de 8pt):
+
+    Base: Tudo deve ser múltiplo de 8 (paddings, margins, alturas).
+
+    PWA Mobile: Grid de 4 colunas com margens de 16px.
+
+    Desktop: Grid de 12 colunas para o dashboard do PWA.
+
+    Breakpoints: Defina transições suaves para 375px, 768px e 1440px.
+
+4. Formas e Elevação (Shapes & Shadows):
+
+    Border Radius: Use cantos levemente arredondados (8px a 12px) para botões e cards.
+
+    Efeito Glass: Para modais e barras laterais, use fundo semi-transparente com backdrop-filter: blur(10px).
+
+    Elevação: Substitua sombras pesadas por bordas sutis (1px solid) com cores levemente mais claras que o fundo para definir profundidade.
+
+5. Iconografia e Ativos:
+
+    Estilo: Ícones de linha (Outline) com espessura de 1.5px ou 2px.
+
+    Consistência: Use uma biblioteca como Lucide Icons ou Phosphor Icons para garantir unidade visual.
+
+6. Componentes de UI Iniciais (Átomos):
+
+    Botões: Estados: Default, Hover, Active, Disabled e Loading.
+
+    Inputs: Foco na experiência de "Input de terminal" com cursores customizados.
+
+    Cards: Estruturas modulares para exibir blocos de informação ou código.
+
+Diretrizes de PWA (UX):
+
+    Priorize o carregamento offline-first.
+
+    Inclua estados de "Skeleton Screen" para carregamento de dados.
+
+    Design focado no "Thumb Zone" (navegação inferior para mobile).
+
+
+
+
+
+
+
+    SISTEMA DE GAMIFICAÇÃO PARA ACADEMIA
+1. MECÂNICA BÁSICA DE PONTUAÇÃO
+
+A pontuação segue a fórmula universal que você propôs, aplicada a todos os exercícios com máquinas e pesos livres:
+Variável	Pontuação	Exemplo
+Carga total (kg)	1 ponto por kg	20 kg = 20 pts
+Repetições	1 ponto por repetição	10 reps = 10 pts
+Séries	1 ponto por série	4 séries = 4 pts
+
+Fórmula:
+Pontos Totais = (Carga em kg × 1) + (Repetições × 1) + (Séries × 1)
+
+Exemplo prático (Supino Reto):
+
+    Carga: 20 kg → 20 pontos
+
+    Repetições: 10 → 10 pontos
+
+    Séries: 4 → 4 pontos
+
+    Total do exercício: 34 pontos
+
+2. SISTEMA DE VALIDAÇÃO POR INSTRUTOR
+
+Para garantir a veracidade e evitar fraudes, o sistema exige validação em duas camadas:
+2.1 Validação Inicial (Cadastro do Aluno)
+
+    Instrutor avalia a capacidade real do aluno (teste de 1RM ou carga segura para 8-12 reps)
+
+    O sistema registra a carga inicial validada como referência
+
+    Aluno só pode pontuar dentro de um limite percentual acima da carga validada (ex: +15%)
+
+2.2 Validação por Sessão
+
+    Modo Supervisionado: Aluno treina com instrutor presente, que aprova cada exercício via app
+
+    Modo Autônomo com Validação: Aluno registra o treino, instrutor valida até 24h após (pode pedir vídeo para exercícios com cargas elevadas)
+
+    Validação por QR Code: Aluno escaneia QR Code fixado na máquina + instrutor escaneia QR Code do aluno para confirmar presença
+
+2.3 Níveis de Confiabilidade
+Nível	Descrição	Multiplicador de Pontos
+Bronze	Treinos autônomos sem validação	0,5x (meia pontuação)
+Prata	Validação parcial (instrutor confirma 1x/semana)	0,8x
+Ouro	Validação por sessão (instrutor aprova cada treino)	1,0x
+Diamante	Validação em tempo real + vídeo dos exercícios principais	1,2x
+3. ELEMENTOS DE GAMIFICAÇÃO
+3.1 Níveis (Ranking por Pontuação Acumulada)
+Nível	Pontos Acumulados	Título
+1	0 – 999	Iniciante
+2	1.000 – 4.999	Aprendiz
+3	5.000 – 19.999	Intermediário
+4	20.000 – 49.999	Avançado
+5	50.000 – 99.999	Elite
+6	100.000+	Lenda
+3.2 Conquistas (Badges)
+
+Carga:
+
+    🏋️ "Primeira Tonelada" – Acumular 1.000 kg somando todas as cargas
+
+    💪 "Força Bruta" – Atingir 100 kg em qualquer exercício base
+
+Volume Total:
+
+    📈 "Volumétrico" – Acumular 10.000 pontos totais
+
+    🔥 "Máquina Incansável" – Acumular 100.000 pontos totais
+
+Consistência:
+
+    📅 "Frequência de Ouro" – Treinar 5 dias na mesma semana
+
+    ⚡ "Sequência Explosiva" – Treinar 30 dias consecutivos
+
+Evolução:
+
+    🚀 "Evolução Rápida" – Aumentar carga em 50% em 30 dias
+
+    🎯 "Superação" – Bater recorde pessoal em 3 exercícios diferentes
+
+3.3 Ranking (Leaderboards)
+
+    Geral Academia: Todos os alunos da unidade
+
+    Por Categoria de Peso: Até 70kg / 70kg–85kg / 85kg+
+
+    Por Grupo Muscular: Melhor pontuação em exercícios de peito, costas, pernas etc.
+
+    Mensal/Semanal: Ranking por pontuação no período
+
+4. REGRAS ESPECÍFICAS POR TIPO DE EXERCÍCIO
+4.1 Máquinas com Carga Fixa (Ex: Leg Press)
+
+    Considerar carga total (peso das anilhas + peso da máquina, se aplicável)
+
+    Para máquinas com alavanca, aplicar fator de conversão conforme especificação do fabricante
+
+4.2 Exercícios com Peso Corporal (Ex: Barra Fixa, Mergulho)
+Exercício	Carga Considerada	Pontuação Base
+Barra Fixa	Peso corporal do aluno	1 ponto por kg
+Mergulho	Peso corporal × 0,7	1 ponto por kg
+Flexão	Peso corporal × 0,65	1 ponto por kg
+Abdominal	Peso corporal × 0,3	1 ponto por kg
+4.3 Exercícios com Carga Progressiva (Ex: Rosca Alternada com halteres)
+
+    Somar carga de ambos os halteres para o total
+
+    Para exercícios unilaterais, multiplicar por 2 o total registrado
+
+4.4 Cardio
+
+    Esteira/Elíptico/Bike: 1 ponto por minuto + 1 ponto por km (ou 10 calorias)
+
+    Remador: 1 ponto por minuto + 2 pontos por 100 metros
+
+
+
+
+
+
+
+    SISTEMA DE RANKINGS COMPLETO
+CATEGORIA 1: RANKINGS DE FORÇA E DESEMPENHO
+1.1 Ranking de Força Bruta (Maior Carga Absoluta)
+Posição	Critério	Período	Premiação
+Ranking Geral	Maior soma de cargas nos 3 principais exercícios (Supino, Agachamento, Levantamento Terra)	Mensal	Cinturão de campeão + desconto na mensalidade
+Por Categoria de Peso	Até 70kg / 70-85kg / 85kg+ / Feminino	Mensal	Medalha personalizada
+Por Exercício Específico	Melhor carga por máquina (Leg Press, Puxada Alta, etc.)	Semanal	Destaque no mural da academia
+1.2 Ranking de Volume Total (Pontos Acumulados)
+Posição	Critério	Período
+Mensal	Maior pontuação no mês	30 dias
+Trimestral	Maior pontuação no trimestre	90 dias
+Anual	Campeão do ano	365 dias
+Histórico	Maior pontuação de todos os tempos	Lifetime
+1.3 Ranking de Evolução (Progressão)
+Posição	Critério	Como é Calculado
+Maior Evolução em Carga	% de aumento de carga no período	(Carga atual - Carga inicial) / Carga inicial × 100
+Maior Evolução em Repetições	% de aumento de repetições	(Reps atual - Reps inicial) / Reps inicial × 100
+Maior Evolução Geral	Média ponderada de evolução em todos os exercícios	Média aritmética das evoluções individuais
+Novato Destaque	Melhor evolução entre alunos com <3 meses de academia	Mesmo critério acima
+CATEGORIA 2: RANKINGS DE CONSISTÊNCIA E DISCIPLINA
+2.1 Ranking de Frequência (Check-in Diário)
+Ranking	Critério	Regras Especiais
+Sequência Ativa	Maior sequência de dias consecutivos treinando	Permite 1 "coringa" por mês para faltas justificadas
+Frequência Mensal	Maior % de presença no mês	Mínimo de 30min por treino para contar
+Frequência Anual	Maior % de presença no ano	Considera apenas dias úteis de funcionamento
+Semana Perfeita	Alunos que treinaram todos os dias da semana	Bonificação: +100 pontos extras
+2.2 Ranking de Pontualidade
+Ranking	Critério	Pontuação Extra
+Sem Atrasos	Maior sequência sem check-in fora do horário agendado	+5 pontos por dia perfeito
+Horário Nobre	Alunos que mantêm consistência de horário	Selo "Relógio Suíço"
+2.3 Ranking de Horário
+Ranking	Critério
+Madrugadores	Alunos que mais treinam antes das 7h
+Noturnos	Alunos que mais treinam após as 20h
+Horário de Pico	Maior frequência no horário mais movimentado
+CATEGORIA 3: RANKINGS DE SAÚDE E COMPOSIÇÃO CORPORAL
+3.1 Ranking de Perda de Peso
+Ranking	Critério	Métrica
+Maior Perda Absoluta	Maior quantidade de kg perdidos	Peso inicial - Peso atual
+Maior % de Perda	Maior porcentagem de peso perdido	(Peso perdido / Peso inicial) × 100
+Transformação do Mês	Melhor combinação de perda de peso + ganho de massa magra	Avaliação por bioimpedância
+Evolução por IMC	Mudança de categoria de IMC	Ex: Obesidade → Sobrepeso → Normal
+3.2 Ranking de Ganho de Massa Magra
+Ranking	Critério
+Maior Ganho Absoluto	Maior aumento em kg de massa magra
+Maior % de Ganho	Maior % de aumento em relação ao peso total
+Melhor Relação	Melhor proporção ganho de massa / perda de gordura
+3.3 Ranking de Medidas Corporais
+Ranking	Critério
+Redução de Cintura	Maior redução em cm
+Evolução de Braço	Maior ganho em cm de circunferência de braço
+Evolução de Pernas	Maior ganho em cm de coxa/panturrilha
+CATEGORIA 4: RANKINGS SOCIAIS E COMUNITÁRIOS
+4.1 Ranking de Participação em Eventos
+Evento	Pontuação por Participação	Pontuação Extra
+Aula Coletiva Especial (Body Attack, Jump, etc.)	+50 pontos	+100 se trouxer convidado
+Corrida/Rua Organizada pela Academia	+100 pontos	+200 se completar o percurso
+Desafio de Final de Semana	+75 pontos	+150 se vencer o desafio
+Workshop/Nutrição	+30 pontos	+50 se fizer avaliação pós-evento
+Campeonato Interno (ex: Supino)	+150 pontos por participação	+500 para o campeão
+Dia do Cliente (evento temático)	+40 pontos	+80 com fantasia
+Aulão de Aniversário da Academia	+60 pontos	+120 com check-in em grupo
+4.2 Ranking de Engajamento Social
+Ranking	Critério	Pontuação
+Amigo Influencer	Mais convidados que se matricularam	500 pontos por matrícula efetivada
+Líder de Turma	Mais interações no grupo do app (comentários, curtidas)	1 ponto por interação
+Mentor Voluntário	Alunos avançados que ajudam iniciantes	100 pontos por semana como mentor
+Avaliador Top	Alunos que mais avaliam treinos e deixam feedback	10 pontos por avaliação detalhada
+4.3 Ranking de Duplas/Grupos
+Ranking	Critério
+Melhor Dupla	Soma dos pontos de dois alunos que treinam juntos ≥70% do tempo
+Melhor Squad	Soma dos pontos do grupo (4+ alunos) com treinos sincronizados
+Melhor Parceiro de Treino	Maior consistência de treino em dupla
+CATEGORIA 5: RANKINGS DE DESAFIOS ESPECIAIS (TEMPORÁRIOS)
+5.1 Desafios Semanais
+Desafio	Regras	Pontuação
+Desafio da Semana de Ouro	Treinar 6 dias na semana	+200 pontos + badge
+Desafio Full Body	Treinar todos os grupos musculares em 5 dias	+150 pontos
+Desafio Cardio Extreme	Acumular 50km de cardio na semana	+100 pontos
+Desafio da Carga Máxima	Aumentar 1RM em qualquer exercício	+50 pontos por kg aumentado
+5.2 Desafios Mensais
+Desafio	Regras	Premiação
+Dezembro do Shape	Maior transformação em 30 dias	3 meses de personal trainer grátis
+Janeiro sem Faltas	100% de frequência no mês	Isenção da taxa de matrícula do próximo ano
+Desafio do Verão	Melhor evolução estética (avaliação por fotos)	Kit exclusivo da academia
+Corrida dos 30 Dias	Maior distância acumulada em cardio	Tênis de corrida personalizado
+5.3 Desafios Temáticos
+Desafio	Tema	Mecânica
+Halloween Strong	Treinos com fantasias	Pontuação dobrada para treinos com fantasia
+Natal Fitness	Corrente do bem	Pontos extras por doar alimentos (100 pts/kg)
+Ano Novo, Novo Recorde	Quebra de recordes	Bônus de 500 pontos para cada recorde quebrado
+Desafio dos Heróis	Cosplay fitness	Pontuação extra + votação popular
+CATEGORIA 6: RANKINGS DE ESPECIALIDADES
+6.1 Ranking por Modalidade
+Modalidade	Ranking
+Musculação	Ranking geral de pontos de musculação
+Cross Training	Ranking específico para treinos funcionais
+Yoga/Pilates	Ranking de frequência e evolução de posturas
+Natação	Ranking por distância acumulada
+Lutas (Boxe, Muay Thai, Jiu-Jitsu)	Ranking por frequência e evolução técnica
+Dança/Zumba	Ranking por participação em coreografias
+6.2 Ranking por Faixa Etária
+Categoria	Idade
+Jovem	15-25 anos
+Adulto	26-40 anos
+Master	41-60 anos
+Sênior	60+ anos
+6.3 Ranking Feminino/Masculino
+
+    Ranking separado por gênero em todas as categorias (opcional, com base na preferência do aluno)
+
+CATEGORIA 7: RANKINGS DE PRÊMIOS ESPECIAIS
+7.1 Selos e Condecorações
+Selo	Como Obter
+🏅 Selo Diamante	Top 10 em 5 categorias diferentes
+⭐ Selo Platinum	Top 3 em qualquer ranking no final do ano
+🔥 Selo Phoenix	Aluno que voltou após lesão e atingiu nível anterior
+👑 Selo Rei/Rainha da Academia	Votação popular + critérios objetivos
+🎯 Selo Perfeccionista	Bateu todos os desafios do mês
+🦸 Selo Superação	Evolução notável após condições adversas
+7.2 Ranking de Recordes
+Recorde	Descrição
+Hall da Fama	Alunos com recordes históricos em exercícios
+Parede dos Campeões	Fotos dos vencedores de cada categoria mensal
+Troféu Rotativo	Troféu que circula entre os alunos destaque do mês
+CATEGORIA 8: RANKINGS DE CHECK-IN EM EVENTOS ESPECIAIS
+8.1 Sistema de Check-in em Eventos
+Tipo de Evento	Check-in	Pontuação
+Evento Presencial	QR Code no local	+50 pts + carimbo digital
+Live/Webinar	Link exclusivo com código único	+30 pts
+Aula Experimental	Check-in com instrutor	+40 pts
+Avaliação Física	Check-in após avaliação completa	+100 pts
+Aniversariante do Mês	Check-in no dia do aniversário	+150 pts + bolo simbólico
+8.2 Passaporte de Eventos
+
+    Aluno ganha um "Passaporte Fitness" digital
+
+    Cada evento participado gera um carimbo
+
+    Bônus acumulativo:
+
+        5 carimbos → +200 pontos
+
+        10 carimbos → +500 pontos + camiseta exclusiva
+
+        20 carimbos → +1.000 pontos + mensalidade grátis por 1 mês
+
+CATEGORIA 9: RANKINGS DE SUPERLIGAS (GUILDAS)
+9.1 Sistema de Ligas
+
+Os alunos podem se organizar em Ligas (grupos de até 20 alunos) e competir:
+Ranking de Ligas	Critério	Pontuação da Liga
+Melhor Liga do Mês	Soma dos pontos de todos os membros	Campeões ganham evento exclusivo
+Liga Mais Engajada	Média de participação em eventos por membro	Troféu no mural
+Liga Mais Evolutiva	Média de evolução dos membros	Treino especial com personal top
+Guerra das Ligas	Competição direta entre 2 ligas por 1 semana	Vencedor ganha 500 pts por membro
+CATEGORIA 10: RANKINGS DE RESPONSABILIDADE AMBIENTAL E SOCIAL
+10.1 Ranking Sustentável
+Ação	Pontuação
+Trouxe garrafa reutilizável	+5 pts por treino
+Usou toalha de tecido (não descartável)	+3 pts por treino
+Participou de ação ecológica (mutirão de limpeza)	+100 pts
+Chegou de bicicleta/a pé	+10 pts por dia
+10.2 Ranking Solidário
+Ação	Pontuação
+Doação de alimentos	50 pts por kg
+Doação de roupas/agasalhos	30 pts por peça
+Participação em campanha de sangue	+200 pts
+Voluntariado em ação social da academia	+150 pts por hora
+TABELA DE BONIFICAÇÕES E MULTIPLICADORES
+Situação	Multiplicador
+Treino validado por instrutor	1,2x
+Treino em horário de baixa movimentação (ajuda a desafogar)	1,1x
+Treino completo (todos os grupos musculares planejados)	1,1x
+Sequência de 7 dias consecutivos	Bônus de 200 pontos
+Participação em evento especial (com check-in)	Bônus de 50-200 pontos
+Aniversário do aluno	Bônus de 300 pontos
+Indicação de novo aluno (matriculado)	Bônus de 500 pontos
+DASHBOARD DE RANKINGS NO APLICATIVO
+
+Para facilitar a visualização, o app pode exibir:
+text
+
+🏆 RANKINGS PRINCIPAIS
+├── 🔥 Ranking de Força (Top 10)
+├── 📅 Ranking de Frequência (Top 10)
+├── 📉 Ranking de Perda de Peso (Top 10)
+├── 🚀 Ranking de Evolução (Top 10)
+├── 🎉 Ranking de Eventos (Top 10)
+├── 👥 Ranking de Ligas (Top 5 Ligas)
+└── ⭐ Meu Ranking Pessoal (minha posição em cada categoria)
+
+📊 FILTROS DISPONÍVEIS
+├── Por período (Semana/Mês/Ano/All Time)
+├── Por categoria (Peso/Idade/Gênero/Modalidade)
+├── Por unidade (se houver múltiplas academias)
+└── Por liga/grupo
+
+Esse sistema cria múltiplos caminhos para o aluno se destacar, garantindo que:
+
+    O iniciante pode brilhar em "Evolução" e "Frequência"
+
+    O forte se destaca em "Força Bruta" e "Recordes"
+
+    O disciplinado vence em "Consistência" e "Pontualidade"
+
+    O social se sobressai em "Eventos" e "Engajamento"
+
+    O saudável é reconhecido em "Perda de Peso" e "Composição Corporal"
+
+
+    tue como um Especialista em Design de Interface (UI) e Experiência do Usuário (UX).
+
+Objetivo: Reorganizar o layout de uma aplicação para três breakpoints: Desktop (1440px), Tablet (768px) e Smartphone (390px).
+
+Restrições Estritas:
+
+    Não altere a paleta de cores (hexadecimais).
+
+    Não altere as famílias tipográficas ou tamanhos de fonte pré-definidos.
+
+    Foco exclusivo na disposição espacial (layout) e no comportamento dos componentes.

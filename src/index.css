@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  /* A10 academia Palette */
+  --color-background: #0D1117;
+  --color-foreground: #F0F6FC;
+  
+  --color-primary: #a855f7; /* Vibrant Purple */
+  --color-primary-foreground: #ffffff;
+  
+  --color-card: #161B22;
+  --color-card-foreground: #F0F6FC;
+  
+  --color-muted: #21262D;
+  --color-muted-foreground: #8B949E;
+  
+  --color-border: #30363D;
+  --color-accent: #1F6FEB; /* Optional accent blue */
+
+  /* Semantic States */
+  --color-success: #3fb950;
+  --color-error: #f85149;
+  --color-warning: #d29922;
+
+  /* Spacing (8pt System) */
+  --spacing-grid-base: 8px;
+  --radius-custom: 12px;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-bold tracking-tight;
+  }
+}
+
+@utility glass {
+  background-color: color-mix(in srgb, var(--color-background) 70%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@utility glass-card {
+  background-color: color-mix(in srgb, var(--color-card) 50%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+}
+
+@utility thumb-zone-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 2rem;
+  padding-top: 1rem;
+  @apply glass;
+}
+
+@utility grid-mobile {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@utility grid-desktop {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full border-2 border-background;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground;
+}
+
+/* Transitions */
+* {
+  @apply transition-colors duration-200;
+}

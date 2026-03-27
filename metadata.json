@@ -1,0 +1,8 @@
+{
+  "name": "Hevy Clone - Fitness Tracker",
+  "description": "A comprehensive fitness tracking app with workout logging, social features, and gamification.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
